@@ -25,8 +25,8 @@ setup(
     platforms='any',
     install_requires=[
         'Flask==1.0.2',
-        'PyYAML==3.13',
-        'xmltodict==0.11.0',
+        'PyYAML==5.1',
+        'xmltodict==0.12.0',
         'dicttoxml==1.7.4'
     ],
     classifiers=[
