@@ -87,5 +87,11 @@ def test_xhr():
     return data['users']
 
 
+@app.route('/testaccept')
+@rb.on_accept()
+def test_accept():
+    return data['users']
+
+
 if __name__ == '__main__':
     app.run()

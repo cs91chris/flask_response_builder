@@ -1,5 +1,6 @@
 from functools import wraps
 
+from flask import abort
 from flask import request
 from flask import Response
 from flask import render_template
@@ -26,6 +27,7 @@ class FlaskResponseBuilder:
         """
         self._app = app
 
+        self._app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', 'application/json')
         self._app.config.setdefault('RB_DEFAULT_ENCODE', 'utf-8')
         self._app.config.setdefault('RB_DEFAULT_DUMP_INDENT', None)
         self._app.config.setdefault('RB_BASE64_ALTCHARS', None)
@@ -43,6 +45,41 @@ class FlaskResponseBuilder:
         if not hasattr(app, 'extensions'):
             app.extensions = dict()
         app.extensions['response_builder'] = self
+
+    def on_accept(self, default=None):
+        """
+
+        :param default:
+        :return:
+        """
+        def response(fun):
+            @wraps(fun)
+            def wrapper(*args, **kwargs):
+                accept = request.headers.get('Accept')
+                if accept == '*/*':
+                    accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
+
+                if accept == 'application/json':
+                    builder = self.json
+                elif accept == 'application/xml':
+                    builder = self.xml
+                elif accept == 'application/base64':
+                    builder = self.base64
+                elif accept == 'application/yaml':
+                    builder = self.yaml
+                elif accept == 'text/html':
+                    builder = self.html
+                elif accept == 'text/csv':
+                    builder = self.csv
+                else:
+                    abort(406, "Not Acceptable")
+                    return  # only to remove warning
+
+                resp = fun(*args, **kwargs)
+                return builder(resp)
+
+            return wrapper
+        return response
 
     def template_or_json(self, template: str):
         """
@@ -174,7 +211,7 @@ class FlaskResponseBuilder:
                 indent=indent,
                 allow_unicode=unicode
             ),
-            mimetype='application/base64',
+            mimetype='application/yaml',
             headers={
                 'Content-Type': 'application/yaml',
                 **(headers or {})

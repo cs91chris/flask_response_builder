@@ -7,7 +7,9 @@ Based on PyYAML, xmltodict, dicttoxml. See their documentation for other options
 
 - Decorator for http response status 201 CREATED
 - Decorator for http response status 204 NO_CONTENT
-- Support for case notation checker and converter. See ``Case`` class.
+- Response based on Accept header of request
+- template_or_json: response based on xhr request
+- Support for case notation checker and converter. See ``Case`` class
 
 Quickstart
 ~~~~~~~~~~
@@ -43,6 +45,7 @@ Configuration
     11. ``RB_CSV_DIALECT``: *(default: excel-tab)*
     12. ``RB_XML_CDATA``: *(default: False)*
     13. ``RB_XML_ROOT``: *(default: root)*
+    14. ``RB_DEFAULT_RESPONSE_FORMAT``: *(default: application/json)*
 
 
 License MIT
