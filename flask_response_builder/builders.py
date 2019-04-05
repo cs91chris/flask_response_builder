@@ -8,16 +8,8 @@ from flask import render_template
 from flask.json import dumps
 
 from flask_response_builder import Transformer
-
-
-BUILDERS = {
-    'csv': 'text/csv',
-    'html': 'text/html',
-    'xml': 'application/xml',
-    'json': 'application/json',
-    'yaml': 'application/yaml',
-    'base64': 'application/base64',
-}
+from flask_response_builder.config import BUILDERS
+from flask_response_builder.config import set_default_config
 
 
 class FlaskResponseBuilder:
@@ -36,20 +28,7 @@ class FlaskResponseBuilder:
         :param app:
         """
         self._app = app
-
-        self._app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', BUILDERS['json'])
-        self._app.config.setdefault('RB_DEFAULT_ENCODE', 'utf-8')
-        self._app.config.setdefault('RB_DEFAULT_DUMP_INDENT', None)
-        self._app.config.setdefault('RB_BASE64_ALTCHARS', None)
-        self._app.config.setdefault('RB_HTML_DEFAULT_TEMPLATE', None)
-        self._app.config.setdefault('RB_YAML_ALLOW_UNICODE', True)
-        self._app.config.setdefault('RB_CSV_DEFAULT_NAME', 'filename')
-        self._app.config.setdefault('RB_CSV_QUOTING', False)
-        self._app.config.setdefault('RB_CSV_DELIMITER', ';')
-        self._app.config.setdefault('RB_CSV_QUOTING_CHAR', '"')
-        self._app.config.setdefault('RB_CSV_DIALECT', 'excel-tab')
-        self._app.config.setdefault('RB_XML_CDATA', False)
-        self._app.config.setdefault('RB_XML_ROOT', 'root')
+        set_default_config(app)
 
         if not hasattr(app, 'extensions'):
             app.extensions = dict()
