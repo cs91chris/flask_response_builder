@@ -87,9 +87,15 @@ def test_xhr():
     return data['users']
 
 
-@app.route('/testaccept')
+@app.route('/accept')
 @rb.on_accept()
 def test_accept():
+    return data['users']
+
+
+@app.route('/format')
+@rb.on_format()
+def test_format():
     return data['users']
 
 

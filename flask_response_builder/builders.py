@@ -34,6 +34,26 @@ class FlaskResponseBuilder:
             app.extensions = dict()
         app.extensions['response_builder'] = self
 
+    def on_format(self, default=None):
+        """
+
+        :param default:
+        :return:
+        """
+        def response(fun):
+            @wraps(fun)
+            def wrapper(*args, **kwargs):
+                fmt = request.args.get('format')
+                if fmt not in BUILDERS.keys():
+                    fmt = default or 'json'
+
+                builder = getattr(self, fmt)
+                resp = fun(*args, **kwargs)
+                return builder(resp)
+
+            return wrapper
+        return response
+
     def on_accept(self, default=None):
         """
 
@@ -49,9 +69,10 @@ class FlaskResponseBuilder:
                 if accept == '*/*':
                     accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
 
-                for k, v in BUILDERS.keys():
+                for k, v in BUILDERS.items():
                     if accept == v:
                         builder = getattr(self, k)
+                        break
 
                 if not builder:
                     abort(406, "Not Acceptable")
