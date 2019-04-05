@@ -12,7 +12,7 @@ with open("README.rst", "r") as fh:
 
 setup(
     name='Flask-ResponseBuilder',
-    version='1.0.0',
+    version='1.1.0',
     url='https://github.com/cs91chris/flask_response_builder',
     license='MIT',
     author='cs91chris',

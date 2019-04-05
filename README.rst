@@ -8,6 +8,7 @@ Based on PyYAML, xmltodict, dicttoxml. See their documentation for other options
 - Decorator for http response status 201 CREATED
 - Decorator for http response status 204 NO_CONTENT
 - Response based on Accept header of request
+- Response based on format parameter (query string)
 - template_or_json: response based on xhr request
 - Support for case notation checker and converter. See ``Case`` class
 
