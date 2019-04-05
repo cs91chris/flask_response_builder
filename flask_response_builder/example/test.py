@@ -93,5 +93,11 @@ def test_accept():
     return data['users']
 
 
+@app.route('/decorator')
+@rb.response('csv', filename='test')
+def test_decorator():
+    return data['users']
+
+
 if __name__ == '__main__':
     app.run()

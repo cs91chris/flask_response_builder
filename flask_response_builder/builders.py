@@ -10,6 +10,16 @@ from flask.json import dumps
 from flask_response_builder import Transformer
 
 
+BUILDERS = {
+    'csv': 'text/csv',
+    'html': 'text/html',
+    'xml': 'application/xml',
+    'json': 'application/json',
+    'yaml': 'application/yaml',
+    'base64': 'application/base64',
+}
+
+
 class FlaskResponseBuilder:
     def __init__(self, app=None):
         """
@@ -27,11 +37,10 @@ class FlaskResponseBuilder:
         """
         self._app = app
 
-        self._app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', 'application/json')
+        self._app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', BUILDERS['json'])
         self._app.config.setdefault('RB_DEFAULT_ENCODE', 'utf-8')
         self._app.config.setdefault('RB_DEFAULT_DUMP_INDENT', None)
         self._app.config.setdefault('RB_BASE64_ALTCHARS', None)
-        self._app.config.setdefault('RB_BASE64_CONTENT_TYPE', 'text/plain')
         self._app.config.setdefault('RB_HTML_DEFAULT_TEMPLATE', None)
         self._app.config.setdefault('RB_YAML_ALLOW_UNICODE', True)
         self._app.config.setdefault('RB_CSV_DEFAULT_NAME', 'filename')
@@ -55,25 +64,18 @@ class FlaskResponseBuilder:
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
+                builder = None
                 accept = request.headers.get('Accept')
+
                 if accept == '*/*':
                     accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
 
-                if accept == 'application/json':
-                    builder = self.json
-                elif accept == 'application/xml':
-                    builder = self.xml
-                elif accept == 'application/base64':
-                    builder = self.base64
-                elif accept == 'application/yaml':
-                    builder = self.yaml
-                elif accept == 'text/html':
-                    builder = self.html
-                elif accept == 'text/csv':
-                    builder = self.csv
-                else:
+                for k, v in BUILDERS.keys():
+                    if accept == v:
+                        builder = getattr(self, k)
+
+                if not builder:
                     abort(406, "Not Acceptable")
-                    return  # only to remove warning
 
                 resp = fun(*args, **kwargs)
                 return builder(resp)
@@ -110,12 +112,12 @@ class FlaskResponseBuilder:
         """
         return Response(
             Transformer.to_base64(
-                str(data),
+                str(data or ''),
                 enc or self._app.config['RB_DEFAULT_ENCODE']
             ),
-            mimetype='application/base64',
+            mimetype=BUILDERS['base64'],
             headers={
-                'Content-Type': ct or self._app.config['RB_BASE64_CONTENT_TYPE'],
+                'Content-Type': ct or BUILDERS['base64'],
                 **(headers or {})
             }
         )
@@ -130,15 +132,15 @@ class FlaskResponseBuilder:
         """
         return Response(
             Transformer.list_to_csv(
-                data,
+                data or [],
                 quoting=self._app.config['RB_CSV_QUOTING'],
                 delimiter=self._app.config['RB_CSV_DELIMITER'],
                 qc=self._app.config['RB_CSV_QUOTING_CHAR'],
                 dialect=self._app.config['RB_CSV_DIALECT']
             ),
-            mimetype='text/csv',
+            mimetype=BUILDERS['csv'],
             headers={
-                'Content-Type': 'text/csv',
+                'Content-Type': BUILDERS['csv'],
                 'Content-Disposition': 'attachment; filename=%s.csv' % (
                     filename or self._app.config['RB_CSV_DEFAULT_NAME'],
                 ),
@@ -156,13 +158,13 @@ class FlaskResponseBuilder:
         """
         return Response(
             Transformer.dict_to_xml(
-                data,
+                data or {},
                 root or self._app.config['RB_XML_ROOT'],
                 cdata=self._app.config['RB_XML_CDATA']
             ),
-            mimetype='application/xml',
+            mimetype=BUILDERS['xml'],
             headers={
-                'Content-Type': 'application/xml',
+                'Content-Type': BUILDERS['xml'],
                 **(headers or {})
             }
         )
@@ -183,13 +185,13 @@ class FlaskResponseBuilder:
 
         return Response(
             dumps(
-                data,
+                data or {},
                 indent=indent,
                 separators=separators
             ),
-            mimetype='application/json',
+            mimetype=BUILDERS['json'],
             headers={
-                'Content-Type': 'application/json',
+                'Content-Type': BUILDERS['json'],
                 **(headers or {})
             }
         )
@@ -207,13 +209,13 @@ class FlaskResponseBuilder:
 
         return Response(
             Transformer.dict_to_yaml(
-                data,
+                data or {},
                 indent=indent,
                 allow_unicode=unicode
             ),
-            mimetype='application/yaml',
+            mimetype=BUILDERS['yaml'],
             headers={
-                'Content-Type': 'application/yaml',
+                'Content-Type': BUILDERS['yaml'],
                 **(headers or {})
             }
         )
@@ -221,8 +223,8 @@ class FlaskResponseBuilder:
     def html(self, data: list, template=None, **kwargs):
         """
 
-        :param template:
         :param data:
+        :param template:
         :return:
         """
         return Response(
@@ -231,3 +233,21 @@ class FlaskResponseBuilder:
                 data=data, **kwargs
             )
         )
+
+    def response(self, fmt: str, **kwargs):
+        """
+        :param fmt:
+        :return:
+        """
+        builder_list = [k for k in BUILDERS.keys()]
+        if fmt not in builder_list:
+            raise NameError("Builder not found: using one of: {}".format(builder_list))
+
+        def _response(f):
+            @wraps(f)
+            def wrapper(*args, **kw):
+                resp = f(*args, **kw)
+                builder = getattr(self, fmt)
+                return builder(resp, **kwargs)
+            return wrapper
+        return _response
