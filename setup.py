@@ -6,13 +6,16 @@ Implementations of flask response in many formats like
 """
 from setuptools import setup
 
+from flask_response_builder import __version__
+
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
+
 setup(
     name='Flask-ResponseBuilder',
-    version='1.1.0',
+    version=__version__,
     url='https://github.com/cs91chris/flask_response_builder',
     license='MIT',
     author='cs91chris',

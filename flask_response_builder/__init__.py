@@ -8,3 +8,6 @@ from .transformers import Transformer
 
 from .builders import BUILDERS
 from .builders import FlaskResponseBuilder
+
+from .version import __version_info__
+from .version import __version__
