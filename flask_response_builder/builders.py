@@ -64,7 +64,9 @@ class FlaskResponseBuilder:
             @wraps(fun)
             def wrapper(*args, **kwargs):
                 builder = None
-                accept = request.headers.get('Accept')
+                accept = request.accept_mimetypes.best_match(
+                    [v for _, v in BUILDERS.items()] + ['*/*']
+                )
 
                 if accept == '*/*':
                     accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
@@ -230,7 +232,8 @@ class FlaskResponseBuilder:
         return Response(
             render_template(
                 template or self._app.config['RB_HTML_DEFAULT_TEMPLATE'],
-                data=data, **kwargs
+                data=data,
+                **kwargs
             )
         )
 
@@ -239,9 +242,8 @@ class FlaskResponseBuilder:
         :param fmt:
         :return:
         """
-        builder_list = [k for k in BUILDERS.keys()]
-        if fmt not in builder_list:
-            raise NameError("Builder not found: using one of: {}".format(builder_list))
+        if fmt not in BUILDERS.keys():
+            raise NameError("Builder not found: using one of: {}".format(BUILDERS.keys()))
 
         def _response(f):
             @wraps(f)

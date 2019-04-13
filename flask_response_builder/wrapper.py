@@ -39,13 +39,13 @@ def created(data: dict, headers=None):
     """
     return Response(
         Transformer.dict_to_json(data),
-            status=201,
-            mimetype='application/json',
-            headers={
-                'Content-Type': 'application/json',
-                **(headers or {})
-            }
-        )
+        status=201,
+        mimetype='application/json',
+        headers={
+            'Content-Type': 'application/json',
+            **(headers or {})
+        }
+    )
 
 
 def created_response(func):
