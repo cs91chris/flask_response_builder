@@ -55,7 +55,7 @@ class Transformer:
 
         w = csv.DictWriter(
             output,
-            data[0].keys(),
+            data[0].keys() if data else '',
             dialect=dialect,
             delimiter=delimiter,
             quotechar=qc,
