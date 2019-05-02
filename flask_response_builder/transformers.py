@@ -158,7 +158,7 @@ class Transformer:
                 return yaml.safe_load(data), ''
             else:
                 return yaml.safe_load(io.StringIO(data)), ''
-        except (ParserError, ScannerError)as exc:
+        except (ParserError, ScannerError) as exc:
             return None, str(exc)
 
     @staticmethod

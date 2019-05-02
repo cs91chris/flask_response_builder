@@ -22,3 +22,5 @@ def set_default_config(app):
     app.config.setdefault('RB_CSV_DIALECT', 'excel-tab')
     app.config.setdefault('RB_XML_CDATA', False)
     app.config.setdefault('RB_XML_ROOT', 'root')
+    app.config.setdefault('RB_FLATTEN_PREFIX', '')
+    app.config.setdefault('RB_FLATTEN_SEPARATOR', '_')

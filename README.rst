@@ -39,7 +39,7 @@ For example usage see ``test.py`` file in example folder.
 
 Configuration
 ^^^^^^^^^^^^^
-    1. ``RB_DEFAULT_RESPONSE_FORMAT``: *(default: application/json)*
+    1.  ``RB_DEFAULT_RESPONSE_FORMAT``: *(default: application/json)*
     2.  ``RB_DEFAULT_ENCODE``: *(default: utf-8)*
     3.  ``RB_DEFAULT_DUMP_INDENT``: *(default: None)*
     4.  ``RB_BASE64_ALTCHARS``: *(default: None)*
@@ -48,10 +48,12 @@ Configuration
     7.  ``RB_CSV_DEFAULT_NAME``: *(default: filename)*
     8.  ``RB_CSV_QUOTING``: *(default: False)*
     9.  ``RB_CSV_DELIMITER``: *(default: ;)*
-    10.  ``RB_CSV_QUOTING_CHAR``: *(default: ")*
+    10. ``RB_CSV_QUOTING_CHAR``: *(default: ")*
     11. ``RB_CSV_DIALECT``: *(default: excel-tab)*
     12. ``RB_XML_CDATA``: *(default: False)*
     13. ``RB_XML_ROOT``: *(default: root)*
+    14. ``RB_FLATTEN_PREFIX``: *(default: '')*
+    15. ``RB_FLATTEN_SEPARATOR``: *(default: '_')*
 
 
 License MIT

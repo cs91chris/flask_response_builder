@@ -8,6 +8,8 @@ from flask import render_template
 from flask.json import dumps
 
 from flask_response_builder import Transformer
+from flask_response_builder.dictutils import to_flatten
+
 from flask_response_builder.config import BUILDERS
 from flask_response_builder.config import set_default_config
 
@@ -132,6 +134,12 @@ class FlaskResponseBuilder:
         :param headers:
         :return:
         """
+        data = to_flatten(
+            data or [],
+            parent_key=self._app.config['RB_FLATTEN_PREFIX'],
+            sep=self._app.config['RB_FLATTEN_SEPARATOR']
+        )
+
         return Response(
             Transformer.list_to_csv(
                 data or [],
@@ -143,6 +151,8 @@ class FlaskResponseBuilder:
             mimetype=BUILDERS['csv'],
             headers={
                 'Content-Type': BUILDERS['csv'],
+                'Total-Rows': len(data),
+                'Total-Columns': len(data[0].keys()),
                 'Content-Disposition': 'attachment; filename=%s.csv' % (
                     filename or self._app.config['RB_CSV_DEFAULT_NAME'],
                 ),
@@ -222,13 +232,21 @@ class FlaskResponseBuilder:
             }
         )
 
-    def html(self, data: list, template=None, **kwargs):
+    def html(self, data: list, template=None, as_table=False, **kwargs):
         """
 
         :param data:
         :param template:
+        :param as_table:
         :return:
         """
+        if as_table is True:
+            data = to_flatten(
+                data or [],
+                parent_key=self._app.config['RB_FLATTEN_PREFIX'],
+                sep=self._app.config['RB_FLATTEN_SEPARATOR']
+            )
+
         return Response(
             render_template(
                 template or self._app.config['RB_HTML_DEFAULT_TEMPLATE'],

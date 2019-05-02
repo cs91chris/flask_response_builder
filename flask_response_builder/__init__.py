@@ -9,5 +9,6 @@ from .transformers import Transformer
 from .builders import BUILDERS
 from .builders import FlaskResponseBuilder
 
-from .version import __version_info__
-from .version import __version__
+from .dictutils import to_flatten
+
+from .version import *

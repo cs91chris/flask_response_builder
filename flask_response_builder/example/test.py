@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask
 from flask import abort
 
@@ -10,7 +12,6 @@ app = Flask(__name__)
 app.config['RB_HTML_DEFAULT_TEMPLATE'] = 'response.html'
 rb = FlaskResponseBuilder(app)
 
-
 data = {
     "users": [
         {
@@ -19,16 +20,21 @@ data = {
             "username": "Bret",
             "email": "Sincere@april.biz",
             "phone": "1-770-736-8031 x56442",
+            "sysdate": datetime.now(),
             "address": {
                 "street": "Kulas Light",
                 "suite": "Apt. 556",
                 "city": "Gwenborough",
                 "zipcode": "92998-3874",
                 "geo": {
-                    "lat": "-37.3159",
-                    "lng": "81.1496"
+                    "lat": -37.3159,
+                    "lon": 81.1496,
                 }
-            }
+            },
+            "test": [
+                {"a": 1, "b": 2},
+                {"a": 2, "b": 3},
+            ]
         },
         {
             "id": 2,
@@ -36,16 +42,20 @@ data = {
             "username": "Antonette",
             "email": "Shanna@melissa.tv",
             "phone": "010-692-6593 x09125",
+            "sysdate": datetime.now(),
             "address": {
                 "street": "Victor Plains",
                 "suite": "Suite 879",
                 "city": "Wisokyburgh",
                 "zipcode": "90566-7771",
                 "geo": {
-                    "lat": "-43.9509",
-                    "lng": "-34.4618"
+                    "lat": -43.9509,
+                    "lon": -34.4618,
                 }
-            }
+            },
+            "test": [
+                {"a": None, "b": None}
+            ]
         }
     ]
 }
@@ -60,7 +70,7 @@ def index(fmt):
     if fmt == 'yaml':
         return rb.yaml(data)
     if fmt == 'html':
-        return rb.html(data['users'], name='Users')
+        return rb.html(data['users'], name='Users', as_table=True)
     if fmt == 'csv':
         return rb.csv(data['users'], 'users')
     if fmt == 'base64':
