@@ -5,9 +5,8 @@ Implementations of flask response in many formats: base64, csv, json, xml, html,
 
 Based on PyYAML, xmltodict, dicttoxml. See their documentation for other options.
 
-- Decorator for http response status 201 CREATED
-- Decorator for http response status 204 NO_CONTENT
-- Response based on Accept header of request
+- Decorator for http response status ``204 NO_CONTENT``
+- Response based on ``Accept`` header of request
 - Response based on format parameter (query string)
 - template_or_json: response based on xhr request
 - Support for case notation checker and converter. See ``Case`` class
@@ -33,7 +32,7 @@ Then import it into your project:
 Example usage
 ^^^^^^^^^^^^^
 
-For example usage see ``test.py`` file in example folder.
+For example usage see ``test.py`` file.
 
 .. _section-2:
 
@@ -51,7 +50,7 @@ Configuration
     10. ``RB_CSV_QUOTING_CHAR``: *(default: ")*
     11. ``RB_CSV_DIALECT``: *(default: excel-tab)*
     12. ``RB_XML_CDATA``: *(default: False)*
-    13. ``RB_XML_ROOT``: *(default: root)*
+    13. ``RB_XML_ROOT``: *(default: ROOT)*
     14. ``RB_FLATTEN_PREFIX``: *(default: '')*
     15. ``RB_FLATTEN_SEPARATOR``: *(default: '_')*
 

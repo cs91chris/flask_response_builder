@@ -1,2 +1,9 @@
-__version_info__ = (1, 1, 1)
+__version_info__ = (1, 2, 1)
 __version__ = '.'.join(map(str, __version_info__))
+__author__ = "cs91chris <cs91chris@voidbrain.me>"
+
+__all__ = [
+    '__version_info__',
+    '__version__',
+    '__author__'
+]

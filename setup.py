@@ -7,10 +7,14 @@ Implementations of flask response in many formats like
 from setuptools import setup
 
 from flask_response_builder import __version__
+from flask_response_builder import __author__
 
 
-with open("README.rst", "r") as fh:
-    long_description = fh.read()
+author, email = __author__.split()
+email = email.lstrip('<').rstrip('>')
+
+with open("README.rst", "r") as rd:
+    long_description = rd.read()
 
 
 setup(
@@ -18,14 +22,15 @@ setup(
     version=__version__,
     url='https://github.com/cs91chris/flask_response_builder',
     license='MIT',
-    author='cs91chris',
-    author_email='cs91chris@voidbrain.me',
+    author=author,
+    author_email=email,
     description='Implementations of flask response in many formats',
     long_description=long_description,
     packages=['flask_response_builder'],
     zip_safe=False,
     include_package_data=True,
     platforms='any',
+    tests_require=['pytest'],
     install_requires=[
         'Flask==1.0.2',
         'PyYAML==5.1',
