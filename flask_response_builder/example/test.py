@@ -3,8 +3,6 @@ from datetime import datetime
 from flask import Flask
 from flask import abort
 
-from flask_response_builder import created_response
-from flask_response_builder import no_content_response
 from flask_response_builder import FlaskResponseBuilder
 
 
@@ -72,7 +70,7 @@ def index(fmt):
     if fmt == 'html':
         return rb.html(data['users'], name='Users', as_table=True)
     if fmt == 'csv':
-        return rb.csv(data['users'], 'users')
+        return rb.csv(data['users'], filename='users')
     if fmt == 'base64':
         return rb.base64(data)
     else:
@@ -80,15 +78,9 @@ def index(fmt):
 
 
 @app.route('/nocontent')
-@no_content_response
+@FlaskResponseBuilder.no_content
 def nocontent():
     pass
-
-
-@app.route('/created')
-@created_response
-def created():
-    return {'message': 'created'}, {'link': '/linkme'}
 
 
 @app.route('/testxhr')
@@ -100,7 +92,7 @@ def test_xhr():
 @app.route('/accept')
 @rb.on_accept()
 def test_accept():
-    return data['users'][0], 206
+    return data['users'], 206
 
 
 @app.route('/format')

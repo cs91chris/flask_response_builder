@@ -1,11 +1,13 @@
 from functools import wraps
 
-from flask import abort
 from flask import request
 from flask import Response
+from flask import make_response
 from flask import render_template
 
 from flask.json import dumps
+
+from werkzeug.exceptions import NotAcceptable
 
 from flask_response_builder import Transformer
 from flask_response_builder.dictutils import to_flatten
@@ -50,6 +52,24 @@ class FlaskResponseBuilder:
             return resp(data, headers=headers, status=status, **kwargs)
         else:
             return resp(data, **kwargs)
+
+    @staticmethod
+    def no_content(func):
+        """
+
+        :param func:
+        :return:
+        """
+
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            func(*args, **kwargs)
+            resp = make_response('', 204)
+            del resp.headers['Content-Type']
+            del resp.headers['Content-Length']
+            return resp
+
+        return wrapped
 
     def on_format(self, default=None, acceptable=None):
         """
@@ -97,7 +117,7 @@ class FlaskResponseBuilder:
                         break
 
                 if not builder:
-                    abort(406, "Not Acceptable")
+                    raise NotAcceptable('Not Acceptable')
 
                 resp = fun(*args, **kwargs)
                 return self._build_response(resp, builder)
@@ -295,7 +315,7 @@ class FlaskResponseBuilder:
         return Response(
             render_template(
                 template or self._app.config['RB_HTML_DEFAULT_TEMPLATE'],
-                data=data,
+                data=data or {},
                 **kwargs
             ),
             status=status,
