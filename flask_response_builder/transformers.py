@@ -7,195 +7,191 @@ import xmltodict
 
 from dicttoxml import dicttoxml
 
-from yaml.parser import ParserError
-from yaml.scanner import ScannerError
-
 
 class Transformer:
     @staticmethod
-    def to_base64(data, enc=None, altchars=None):
+    def to_base64(data, enc=None, dec=True, **kwargs):
         """
 
         :param data:
         :param enc:
-        :param altchars:
+        :param dec:
         :return:
         """
-        return base64.b64encode(
-            data.encode(enc),
-            altchars=altchars
-        ).decode()
+        d = base64.b64encode(data.encode(enc), **kwargs)
+        return d.decode() if dec is True else d
 
     @staticmethod
-    def from_base64(data: str, altchars=None):
+    def from_base64(data: str, **kwargs):
         """
 
         :param data:
-        :param altchars:
         :return:
         """
-        return base64.b64decode(
-            data,
-            altchars=altchars
-        )
+        return base64.b64decode(data, **kwargs)
 
     @staticmethod
-    def list_to_csv(data: list, delimiter=';', quoting=True, qc='"', dialect='excel-tab'):
+    def list_to_csv(data: list, quoting=True, **kwargs):
         """
 
         :param data:
-        :param delimiter:
         :param quoting:
-        :param qc:
-        :param dialect:
         :return:
         """
-        q = csv.QUOTE_ALL if quoting else csv.QUOTE_NONE
-        output = io.StringIO()
+        kwargs.setdefault('dialect', 'excel-tab')
+        kwargs.setdefault('delimiter', ';')
+        kwargs.setdefault('quotechar', '"')
+        kwargs.setdefault('quoting', csv.QUOTE_ALL if quoting else csv.QUOTE_NONE)
 
-        w = csv.DictWriter(
-            output,
-            data[0].keys() if data else '',
-            dialect=dialect,
-            delimiter=delimiter,
-            quotechar=qc,
-            quoting=q
-        )
+        output = io.StringIO()
+        w = csv.DictWriter(output, data[0].keys() if data else '', **kwargs)
         w.writeheader()
         w.writerows(data)
 
         return output.getvalue()
 
     @staticmethod
-    def csv_to_list(data: str):
+    def csv_to_list(data: str, **kwargs):
         """
 
         :param data:
         :return:
         """
         return [
-            dict(row) for row in csv.DictReader(io.StringIO(data))
+            dict(row) for row in csv.DictReader(io.StringIO(data), **kwargs)
         ]
 
     @staticmethod
-    def dict_to_xml(data: dict, root='root', row='row', at=True, isup=True, cdata=False):
-        """
-
-        :param data:
-        :param root:
-        :param row:
-        :param at:
-        :param isup:
-        :param cdata:
-        :return:
-        """
-        return dicttoxml(
-                data,
-                custom_root=root.upper() if isup else root,
-                item_func=lambda x: row.upper() if isup else row,
-                attr_type=at,
-                cdata=cdata
-            )
-
-    @staticmethod
-    def xml_to_dict(data: str, pn=False):
-        """
-
-        :param data:
-        :param pn:
-        :return:
-        """
-        return xmltodict.parse(
-            data,
-            process_namespaces=pn
-        )
-
-    @staticmethod
-    def dict_to_json(data: dict):
+    def dict_to_xml(data: dict, **kwargs):
         """
 
         :param data:
         :return:
         """
-        return json.dumps(data)
+        kwargs.setdefault('item_func', lambda x: 'ROW')
+        return dicttoxml(data, **kwargs)
 
     @staticmethod
-    def json_to_dict(data: str):
+    def xml_to_dict(data: str, **kwargs):
         """
 
         :param data:
         :return:
         """
-        return json.loads(data)
+        return xmltodict.parse(data, **kwargs)
 
     @staticmethod
-    def dict_to_yaml(data: dict, indent=4, allow_unicode=True, **kwargs):
+    def dict_to_json(data: dict, **kwargs):
         """
 
         :param data:
-        :param indent:
-        :param allow_unicode:
+        :return:
+        """
+        return json.dumps(data, **kwargs)
+
+    @staticmethod
+    def json_to_dict(data: str, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return json.loads(data, **kwargs)
+
+    @staticmethod
+    def dict_to_yaml(data: dict, **kwargs):
+        """
+
+        :param data:
         :param kwargs:
         :return:
         """
-        return yaml.safe_dump(
-            data,
-            indent=indent,
-            allow_unicode=allow_unicode,
-            default_flow_style=False,
-            **kwargs
-        )
+        kwargs.setdefault('indent', 4)
+        kwargs.setdefault('allow_unicode', True)
+        kwargs.setdefault('default_flow_style', False)
+
+        return yaml.safe_dump(data, **kwargs)
 
     @staticmethod
-    def yaml_to_dict(data: str):
+    def yaml_to_dict(data: str, **kwargs):
         """
 
         :param data:
         :return:
         """
-        try:
-            if isinstance(data, io.IOBase):
-                return yaml.safe_load(data), ''
-            else:
-                return yaml.safe_load(io.StringIO(data)), ''
-        except (ParserError, ScannerError) as exc:
-            return None, str(exc)
+        if isinstance(data, io.IOBase):
+            return yaml.safe_load(data)
+        else:
+            return yaml.safe_load(io.StringIO(data))
 
     @staticmethod
-    def json_to_xml(data: str):
+    def json_to_xml(data: str, json_args=None, xml_args=None):
         """
 
         :param data:
+        :param json_args:
+        :param xml_args:
         :return:
         """
-        return Transformer.dict_to_xml(
-            Transformer.json_to_dict(str(data)) if isinstance(data, type(str)) else data
-        )
+        _dict = Transformer.json_to_dict(data, **(json_args or {}))
+        return Transformer.dict_to_xml(_dict, **(xml_args or {}))
 
     @staticmethod
-    def xml_to_json(data: str):
+    def xml_to_json(data: str, xml_args=None, json_args=None):
         """
 
         :param data:
+        :param xml_args:
+        :param json_args:
         :return:
         """
-        return json.dumps(Transformer.xml_to_dict(data))
+        _dict = Transformer.xml_to_dict(data, **(xml_args or {}))
+        return json.dumps(_dict, **(json_args or {}))
 
     @staticmethod
-    def json_to_yaml(data):
+    def json_to_yaml(data: str, json_args=None, yaml_args=None):
         """
 
         :param data:
+        :param json_args:
+        :param yaml_args:
         :return:
         """
-        return Transformer.dict_to_yaml(Transformer.json_to_dict(data))
+        _dict = Transformer.json_to_dict(data, **(json_args or {}))
+        return Transformer.dict_to_yaml(_dict, **(yaml_args or {}))
 
     @staticmethod
-    def yaml_to_json(data: str):
+    def yaml_to_json(data: str, yaml_args=None, json_args=None):
         """
 
         :param data:
+        :param yaml_args:
+        :param json_args:
         :return:
         """
-        dictionary, error = Transformer.yaml_to_dict(data)
-        return Transformer.dict_to_json(dictionary), error
+        _dict = Transformer.yaml_to_dict(data, **(yaml_args or {}))
+        return Transformer.dict_to_json(_dict, **(json_args or {}))
+
+    @staticmethod
+    def xml_to_yaml(data: str, xml_args=None, yaml_args=None):
+        """
+
+        :param data:
+        :param xml_args:
+        :param yaml_args:
+        :return:
+        """
+        _dict = Transformer.xml_to_dict(data, **(xml_args or {}))
+        return Transformer.dict_to_yaml(_dict, **(yaml_args or {}))
+
+    @staticmethod
+    def yaml_to_xml(data: str, yaml_args=None, xml_args=None):
+        """
+
+        :param data:
+        :param yaml_args:
+        :param xml_args:
+        :return:
+        """
+        _dict = Transformer.yaml_to_dict(data, **(yaml_args or {}))
+        return Transformer.dict_to_xml(_dict, **(xml_args or {}))

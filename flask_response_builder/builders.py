@@ -200,7 +200,7 @@ class FlaskResponseBuilder:
                 data or [],
                 quoting=self._app.config['RB_CSV_QUOTING'],
                 delimiter=self._app.config['RB_CSV_DELIMITER'],
-                qc=self._app.config['RB_CSV_QUOTING_CHAR'],
+                quotechar=self._app.config['RB_CSV_QUOTING_CHAR'],
                 dialect=self._app.config['RB_CSV_DIALECT']
             ),
             mimetype=BUILDERS['csv'],
@@ -228,7 +228,7 @@ class FlaskResponseBuilder:
         return Response(
             Transformer.dict_to_xml(
                 data or {},
-                root or self._app.config['RB_XML_ROOT'],
+                custom_root=root or self._app.config['RB_XML_ROOT'],
                 cdata=self._app.config['RB_XML_CDATA'],
                 **kwargs
             ),
@@ -240,7 +240,7 @@ class FlaskResponseBuilder:
             }
         )
 
-    def json(self, data, headers=None, status=None):
+    def json(self, data, headers=None, status=None, **kwargs):
         """
 
         :param data:
@@ -259,7 +259,8 @@ class FlaskResponseBuilder:
             dumps(
                 data or {},
                 indent=indent,
-                separators=separators
+                separators=separators,
+                **kwargs
             ),
             mimetype=BUILDERS['json'],
             status=status or 200,
