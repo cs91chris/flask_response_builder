@@ -36,42 +36,60 @@ class FlaskResponseBuilder:
             app.extensions = dict()
         app.extensions['response_builder'] = self
 
-    def on_format(self, default=None):
+    @staticmethod
+    def _build_response(data, resp, **kwargs):
+        """
+
+        :param data:
+        :param resp:
+        :return:
+        """
+        if isinstance(data, tuple):
+            v = data + (None,) * (3 - len(data))
+            data, status, headers = v if isinstance(v[1], int) else (v[0], v[2], v[1])
+            return resp(data, headers=headers, status=status, **kwargs)
+        else:
+            return resp(data, **kwargs)
+
+    def on_format(self, default=None, acceptable=None):
         """
 
         :param default:
+        :param acceptable:
         :return:
         """
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
                 fmt = request.args.get('format')
-                if fmt not in BUILDERS.keys():
+
+                if fmt not in (acceptable or BUILDERS.keys()):
                     fmt = default or 'json'
 
                 builder = getattr(self, fmt)
                 resp = fun(*args, **kwargs)
-                return builder(resp)
+                return self._build_response(resp, builder)
 
             return wrapper
         return response
 
-    def on_accept(self, default=None):
+    def on_accept(self, default=None, acceptable=None):
         """
 
         :param default:
+        :param acceptable:
         :return:
         """
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
                 builder = None
-                accept = request.accept_mimetypes.best_match(
-                    [v for _, v in BUILDERS.items()] + ['*/*']
-                )
 
-                if accept == '*/*':
+                if request.accept_mimetypes is None or str(request.accept_mimetypes) == '*/*':
                     accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
+                else:
+                    mimetypes_list = acceptable or [v for _, v in BUILDERS.items()]
+                    accept = request.accept_mimetypes.best_match(mimetypes_list)
 
                 for k, v in BUILDERS.items():
                     if accept == v:
@@ -82,56 +100,73 @@ class FlaskResponseBuilder:
                     abort(406, "Not Acceptable")
 
                 resp = fun(*args, **kwargs)
-                return builder(resp)
-
+                return self._build_response(resp, builder)
             return wrapper
         return response
 
-    def template_or_json(self, template: str):
+    def response(self, fmt: str, **kwargs):
+        """
+        :param fmt:
+        :return:
+        """
+        if fmt not in BUILDERS.keys():
+            raise NameError("Builder not found: using one of: {}".format(BUILDERS.keys()))
+
+        def _response(f):
+            @wraps(f)
+            def wrapper(*args, **kw):
+                resp = f(*args, **kw)
+                builder = getattr(self, fmt)
+                return self._build_response(resp, builder, **kwargs)
+            return wrapper
+        return _response
+
+    def template_or_json(self, template: str, as_table=False):
         """
 
         :param template:
+        :param as_table:
         :return:
         """
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
                 resp = fun(*args, **kwargs)
-
                 if request.is_xhr:
-                    return self.json(resp)
+                    return self._build_response(resp, self.html, template=template, as_table=as_table)
                 else:
-                    return self.html(resp, template)
+                    return self._build_response(resp, self.json)
             return wrapper
         return response
 
-    def base64(self, data, enc=None, ct=None, headers=None):
+    def base64(self, data, headers=None, status=None, enc=None, ct=None):
         """
 
         :param data:
+        :param headers:
+        :param status:
         :param enc:
         :param ct:
-        :param headers:
         :return:
         """
+        encoding = enc or self._app.config['RB_DEFAULT_ENCODE']
         return Response(
-            Transformer.to_base64(
-                str(data or ''),
-                enc or self._app.config['RB_DEFAULT_ENCODE']
-            ),
-            mimetype=BUILDERS['base64'],
+            Transformer.to_base64(str(data or ''), encoding),
+            mimetype="{};{}".format(BUILDERS['base64'], encoding),
+            status=status or 200,
             headers={
                 'Content-Type': ct or BUILDERS['base64'],
                 **(headers or {})
             }
         )
 
-    def csv(self, data: list, filename=None, headers=None):
+    def csv(self, data, headers=None, status=None, filename=None):
         """
 
         :param data:
-        :param filename:
         :param headers:
+        :param status:
+        :param filename:
         :return:
         """
         data = to_flatten(
@@ -149,6 +184,7 @@ class FlaskResponseBuilder:
                 dialect=self._app.config['RB_CSV_DIALECT']
             ),
             mimetype=BUILDERS['csv'],
+            status=status or 200,
             headers={
                 'Content-Type': BUILDERS['csv'],
                 'Total-Rows': len(data),
@@ -160,32 +196,36 @@ class FlaskResponseBuilder:
             }
         )
 
-    def xml(self, data: dict, root=None, headers=None):
+    def xml(self, data, headers=None, status=None, root=None, **kwargs):
         """
 
         :param data:
-        :param root:
         :param headers:
+        :param status:
+        :param root:
         :return:
         """
         return Response(
             Transformer.dict_to_xml(
                 data or {},
                 root or self._app.config['RB_XML_ROOT'],
-                cdata=self._app.config['RB_XML_CDATA']
+                cdata=self._app.config['RB_XML_CDATA'],
+                **kwargs
             ),
             mimetype=BUILDERS['xml'],
+            status=status or 200,
             headers={
                 'Content-Type': BUILDERS['xml'],
                 **(headers or {})
             }
         )
 
-    def json(self, data: dict, headers=None):
+    def json(self, data, headers=None, status=None):
         """
 
         :param data:
         :param headers:
+        :param status:
         :return:
         """
         if self._app.debug:
@@ -202,18 +242,20 @@ class FlaskResponseBuilder:
                 separators=separators
             ),
             mimetype=BUILDERS['json'],
+            status=status or 200,
             headers={
                 'Content-Type': BUILDERS['json'],
                 **(headers or {})
             }
         )
 
-    def yaml(self, data: dict, unicode=None, headers=None):
+    def yaml(self, data, headers=None, status=None, unicode=None):
         """
 
         :param data:
-        :param unicode:
         :param headers:
+        :param status:
+        :param unicode:
         :return:
         """
         indent = self._app.config['RB_DEFAULT_DUMP_INDENT'] if self._app.debug else None
@@ -229,13 +271,16 @@ class FlaskResponseBuilder:
             headers={
                 'Content-Type': BUILDERS['yaml'],
                 **(headers or {})
-            }
+            },
+            status=status or 200
         )
 
-    def html(self, data: list, template=None, as_table=False, **kwargs):
+    def html(self, data, headers=None, status=None, template=None, as_table=False, **kwargs):
         """
 
         :param data:
+        :param headers:
+        :param status:
         :param template:
         :param as_table:
         :return:
@@ -252,22 +297,7 @@ class FlaskResponseBuilder:
                 template or self._app.config['RB_HTML_DEFAULT_TEMPLATE'],
                 data=data,
                 **kwargs
-            )
+            ),
+            status=status,
+            headers=headers
         )
-
-    def response(self, fmt: str, **kwargs):
-        """
-        :param fmt:
-        :return:
-        """
-        if fmt not in BUILDERS.keys():
-            raise NameError("Builder not found: using one of: {}".format(BUILDERS.keys()))
-
-        def _response(f):
-            @wraps(f)
-            def wrapper(*args, **kw):
-                resp = f(*args, **kw)
-                builder = getattr(self, fmt)
-                return builder(resp, **kwargs)
-            return wrapper
-        return _response

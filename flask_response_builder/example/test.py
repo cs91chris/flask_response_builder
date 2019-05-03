@@ -100,13 +100,13 @@ def test_xhr():
 @app.route('/accept')
 @rb.on_accept()
 def test_accept():
-    return data['users']
+    return data['users'][0], 206
 
 
 @app.route('/format')
 @rb.on_format()
 def test_format():
-    return data['users']
+    return data['users'], {'header': 'test header'}
 
 
 @app.route('/decorator')
