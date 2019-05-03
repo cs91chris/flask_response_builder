@@ -12,3 +12,4 @@ build
 *.bak
 .idea
 .cache
+.pytest_cache
