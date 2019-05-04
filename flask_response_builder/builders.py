@@ -60,7 +60,6 @@ class FlaskResponseBuilder:
         :param func:
         :return:
         """
-
         @wraps(func)
         def wrapped(*args, **kwargs):
             func(*args, **kwargs)
@@ -108,7 +107,7 @@ class FlaskResponseBuilder:
                 if request.accept_mimetypes is None or str(request.accept_mimetypes) == '*/*':
                     accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
                 else:
-                    mimetypes_list = acceptable or [v for _, v in BUILDERS.items()]
+                    mimetypes_list = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
                     accept = request.accept_mimetypes.best_match(mimetypes_list)
 
                 for k, v in BUILDERS.items():
@@ -117,7 +116,7 @@ class FlaskResponseBuilder:
                         break
 
                 if not builder:
-                    raise NotAcceptable('Not Acceptable')
+                    raise NotAcceptable('Not Acceptable: {}'.format(request.accept_mimetypes))
 
                 resp = fun(*args, **kwargs)
                 return self._build_response(resp, builder)
@@ -180,7 +179,7 @@ class FlaskResponseBuilder:
             }
         )
 
-    def csv(self, data, headers=None, status=None, filename=None):
+    def csv(self, data, headers=None, status=None, filename=None, **kwargs):
         """
 
         :param data:
@@ -201,7 +200,8 @@ class FlaskResponseBuilder:
                 quoting=self._app.config['RB_CSV_QUOTING'],
                 delimiter=self._app.config['RB_CSV_DELIMITER'],
                 quotechar=self._app.config['RB_CSV_QUOTING_CHAR'],
-                dialect=self._app.config['RB_CSV_DIALECT']
+                dialect=self._app.config['RB_CSV_DIALECT'],
+                **kwargs
             ),
             mimetype=BUILDERS['csv'],
             status=status or 200,
@@ -296,7 +296,7 @@ class FlaskResponseBuilder:
             status=status or 200
         )
 
-    def html(self, data, headers=None, status=None, template=None, as_table=False, **kwargs):
+    def html(self, data, headers=None, status=None, template=None, as_table=None, **kwargs):
         """
 
         :param data:
@@ -306,6 +306,9 @@ class FlaskResponseBuilder:
         :param as_table:
         :return:
         """
+        if as_table is None:
+            as_table = self._app.config['RB_HTML_AS_TABLE']
+
         if as_table is True:
             data = to_flatten(
                 data or [],
