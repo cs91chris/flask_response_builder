@@ -31,17 +31,16 @@ class Transformer:
         return base64.b64decode(data, **kwargs)
 
     @staticmethod
-    def list_to_csv(data: list, quoting=True, **kwargs):
+    def list_to_csv(data: list, **kwargs):
         """
 
         :param data:
-        :param quoting:
         :return:
         """
         kwargs.setdefault('dialect', 'excel-tab')
         kwargs.setdefault('delimiter', ';')
         kwargs.setdefault('quotechar', '"')
-        kwargs.setdefault('quoting', csv.QUOTE_ALL if quoting else csv.QUOTE_NONE)
+        kwargs.setdefault('quoting', csv.QUOTE_ALL)
 
         output = io.StringIO()
         w = csv.DictWriter(output, data[0].keys() if data else '', **kwargs)

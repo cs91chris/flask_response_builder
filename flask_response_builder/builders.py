@@ -158,7 +158,7 @@ class FlaskResponseBuilder:
             return wrapper
         return response
 
-    def base64(self, data, headers=None, status=None, enc=None, ct=None):
+    def base64(self, data, headers=None, status=None, enc=None, ct=None, **kwargs):
         """
 
         :param data:
@@ -170,7 +170,7 @@ class FlaskResponseBuilder:
         """
         encoding = enc or self._app.config['RB_DEFAULT_ENCODE']
         return Response(
-            Transformer.to_base64(str(data or ''), encoding),
+            Transformer.to_base64(str(data or ''), encoding, **kwargs),
             mimetype="{};{}".format(BUILDERS['base64'], encoding),
             status=status or 200,
             headers={
@@ -197,7 +197,6 @@ class FlaskResponseBuilder:
         return Response(
             Transformer.list_to_csv(
                 data or [],
-                quoting=self._app.config['RB_CSV_QUOTING'],
                 delimiter=self._app.config['RB_CSV_DELIMITER'],
                 quotechar=self._app.config['RB_CSV_QUOTING_CHAR'],
                 dialect=self._app.config['RB_CSV_DIALECT'],
@@ -270,23 +269,21 @@ class FlaskResponseBuilder:
             }
         )
 
-    def yaml(self, data, headers=None, status=None, unicode=None):
+    def yaml(self, data, headers=None, status=None, **kwargs):
         """
 
         :param data:
         :param headers:
         :param status:
-        :param unicode:
         :return:
         """
-        indent = self._app.config['RB_DEFAULT_DUMP_INDENT'] if self._app.debug else None
-        unicode = unicode or self._app.config['RB_YAML_ALLOW_UNICODE']
+        kwargs.setdefault('indent', self._app.config['RB_DEFAULT_DUMP_INDENT'] if self._app.debug else None)
+        kwargs.setdefault('allow_unicode', self._app.config['RB_YAML_ALLOW_UNICODE'])
 
         return Response(
             Transformer.dict_to_yaml(
                 data or {},
-                indent=indent,
-                allow_unicode=unicode
+                **kwargs
             ),
             mimetype=BUILDERS['yaml'],
             headers={

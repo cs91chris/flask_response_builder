@@ -18,7 +18,6 @@ def set_default_config(app):
     app.config.setdefault('RB_HTML_AS_TABLE', False)
     app.config.setdefault('RB_YAML_ALLOW_UNICODE', True)
     app.config.setdefault('RB_CSV_DEFAULT_NAME', 'filename')
-    app.config.setdefault('RB_CSV_QUOTING', False)
     app.config.setdefault('RB_CSV_DELIMITER', ';')
     app.config.setdefault('RB_CSV_QUOTING_CHAR', '"')
     app.config.setdefault('RB_CSV_DIALECT', 'excel-tab')
