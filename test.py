@@ -99,6 +99,16 @@ def app():
     def test_accept():
         return data['users']
 
+    @_app.route('/onacceptonly')
+    @rb.on_accept(acceptable=['application/xml'])
+    def test_acceptonly():
+        return data['users']
+
+    @_app.route('/customaccept')
+    def test_customaccept():
+        _, builder = rb.get_mimetype_accept()
+        return rb.build_response(builder, data['users'])
+
     @_app.route('/format')
     @rb.on_format()
     def test_format():
@@ -186,6 +196,24 @@ def test_on_accept(client):
     res = client.get('/onaccept', headers={'Accept': 'text/csv'})
     assert res.status_code == 200
     assert 'text/csv' in res.headers['Content-Type']
+
+    res = client.get('/onaccept', headers={'Accept': 'custom/format'})
+    assert res.status_code == 406
+
+
+def test_on_accept_only(client):
+    res = client.get('/onacceptonly', headers={'Accept': 'application/xml'})
+    assert res.status_code == 200
+    assert 'application/xml' in res.headers['Content-Type']
+
+    res = client.get('/onacceptonly', headers={'Accept': 'application/json'})
+    assert res.status_code == 406
+
+
+def test_custom_accept(client):
+    res = client.get('/customaccept', headers={'Accept': 'application/xml'})
+    assert res.status_code == 200
+    assert 'application/xml' in res.headers['Content-Type']
 
 
 def test_template_or_json(client):

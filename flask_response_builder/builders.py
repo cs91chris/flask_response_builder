@@ -38,20 +38,42 @@ class FlaskResponseBuilder:
             app.extensions = dict()
         app.extensions['response_builder'] = self
 
-    @staticmethod
-    def _build_response(data, resp, **kwargs):
+    def build_response(self, builder, data, **kwargs):
         """
 
+        :param builder:
         :param data:
-        :param resp:
         :return:
         """
+        if isinstance(builder, str):
+            builder = getattr(self, builder)
+
         if isinstance(data, tuple):
             v = data + (None,) * (3 - len(data))
             data, status, headers = v if isinstance(v[1], int) else (v[0], v[2], v[1])
-            return resp(data, headers=headers, status=status, **kwargs)
+            kwargs['headers'] = headers
+            kwargs['status'] = status
+
+        return builder(data, **kwargs)
+
+    def get_mimetype_accept(self, default=None, acceptable=None):
+        """
+
+        :param default:
+        :param acceptable:
+        :return:
+        """
+        if not request.accept_mimetypes or str(request.accept_mimetypes) == '*/*':
+            accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
         else:
-            return resp(data, **kwargs)
+            mimetypes_list = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
+            accept = request.accept_mimetypes.best_match(mimetypes_list)
+
+        for builder, mimetype in BUILDERS.items():
+            if accept == mimetype:
+                return mimetype, builder
+
+        raise NotAcceptable('Not Acceptable: {}'.format(request.accept_mimetypes))
 
     @staticmethod
     def no_content(func):
@@ -67,7 +89,6 @@ class FlaskResponseBuilder:
             del resp.headers['Content-Type']
             del resp.headers['Content-Length']
             return resp
-
         return wrapped
 
     def on_format(self, default=None, acceptable=None):
@@ -80,15 +101,11 @@ class FlaskResponseBuilder:
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
-                fmt = request.args.get('format')
+                builder = request.args.get('format')
+                if builder not in (acceptable or BUILDERS.keys()):
+                    builder = default or 'json'
 
-                if fmt not in (acceptable or BUILDERS.keys()):
-                    fmt = default or 'json'
-
-                builder = getattr(self, fmt)
-                resp = fun(*args, **kwargs)
-                return self._build_response(resp, builder)
-
+                return self.build_response(builder, fun(*args, **kwargs))
             return wrapper
         return response
 
@@ -99,46 +116,26 @@ class FlaskResponseBuilder:
         :param acceptable:
         :return:
         """
-        conf = self._app.config
-
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
-                builder = None
-
-                if request.accept_mimetypes is None or str(request.accept_mimetypes) == '*/*':
-                    accept = default or conf['RB_DEFAULT_RESPONSE_FORMAT']
-                else:
-                    mimetypes_list = acceptable or conf['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
-                    accept = request.accept_mimetypes.best_match(mimetypes_list)
-
-                for k, v in BUILDERS.items():
-                    if accept == v:
-                        builder = getattr(self, k)
-                        break
-
-                if not builder:
-                    raise NotAcceptable('Not Acceptable: {}'.format(request.accept_mimetypes))
-
-                resp = fun(*args, **kwargs)
-                return self._build_response(resp, builder)
+                mimetype, builder = self.get_mimetype_accept(default, acceptable)
+                return self.build_response(builder, fun(*args, **kwargs))
             return wrapper
         return response
 
-    def response(self, fmt: str, **kwargs):
+    def response(self, builder, **kwargs):
         """
-        :param fmt:
+        :param builder:
         :return:
         """
-        if fmt not in BUILDERS.keys():
+        if isinstance(builder, str) and builder not in BUILDERS.keys():
             raise NameError("Builder not found: using one of: {}".format(BUILDERS.keys()))
 
         def _response(f):
             @wraps(f)
             def wrapper(*args, **kw):
-                resp = f(*args, **kw)
-                builder = getattr(self, fmt)
-                return self._build_response(resp, builder, **kwargs)
+                return self.build_response(builder, f(*args, **kw), **kwargs)
             return wrapper
         return _response
 
@@ -155,14 +152,14 @@ class FlaskResponseBuilder:
             def wrapper(*args, **kwargs):
                 resp = fun(*args, **kwargs)
                 if request.is_xhr:
-                    return self._build_response(
-                        resp, self.html,
+                    return self.build_response(
+                        self.html, resp,
                         template=template,
                         as_table=as_table,
                         to_dict=to_dict
                     )
                 else:
-                    return self._build_response(resp, self.json)
+                    return self.build_response(self.json, resp)
             return wrapper
         return response
 
