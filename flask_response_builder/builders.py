@@ -99,15 +99,17 @@ class FlaskResponseBuilder:
         :param acceptable:
         :return:
         """
+        conf = self._app.config
+
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
                 builder = None
 
                 if request.accept_mimetypes is None or str(request.accept_mimetypes) == '*/*':
-                    accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
+                    accept = default or conf['RB_DEFAULT_RESPONSE_FORMAT']
                 else:
-                    mimetypes_list = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
+                    mimetypes_list = acceptable or conf['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
                     accept = request.accept_mimetypes.best_match(mimetypes_list)
 
                 for k, v in BUILDERS.items():
@@ -140,11 +142,12 @@ class FlaskResponseBuilder:
             return wrapper
         return _response
 
-    def template_or_json(self, template: str, as_table=False):
+    def template_or_json(self, template: str, as_table=False, to_dict=None):
         """
 
         :param template:
         :param as_table:
+        :param to_dict:
         :return:
         """
         def response(fun):
@@ -152,7 +155,12 @@ class FlaskResponseBuilder:
             def wrapper(*args, **kwargs):
                 resp = fun(*args, **kwargs)
                 if request.is_xhr:
-                    return self._build_response(resp, self.html, template=template, as_table=as_table)
+                    return self._build_response(
+                        resp, self.html,
+                        template=template,
+                        as_table=as_table,
+                        to_dict=to_dict
+                    )
                 else:
                     return self._build_response(resp, self.json)
             return wrapper
@@ -190,6 +198,7 @@ class FlaskResponseBuilder:
         """
         data = to_flatten(
             data or [],
+            to_dict=kwargs.get('to_dict'),
             parent_key=self._app.config['RB_FLATTEN_PREFIX'],
             sep=self._app.config['RB_FLATTEN_SEPARATOR']
         )
@@ -309,6 +318,7 @@ class FlaskResponseBuilder:
         if as_table is True:
             data = to_flatten(
                 data or [],
+                to_dict=kwargs.get('to_dict'),
                 parent_key=self._app.config['RB_FLATTEN_PREFIX'],
                 sep=self._app.config['RB_FLATTEN_SEPARATOR']
             )
