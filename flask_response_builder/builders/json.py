@@ -1,36 +1,51 @@
-from flask import Response
 from flask.json import dumps
+from flask.json import loads
 
 from . import Builder
 
 
 class JsonBuilder(Builder):
-    def build(self, data, headers=None, status=None, **kwargs):
+    def _build(self, data, **kwargs):
         """
 
         :param data:
-        :param headers:
-        :param status:
         :return:
         """
-        if self._conf.get('DEBUG'):
-            indent = self._conf.get('RB_DEFAULT_DUMP_INDENT')
-            separators = (', ', ': ')
+        if self.conf.get('DEBUG'):
+            kwargs.setdefault('indent', self.conf.get('RB_DEFAULT_DUMP_INDENT'))
+            kwargs.setdefault('separators', (', ', ': '))
         else:
-            indent = None
-            separators = (',', ':')
+            kwargs.setdefault('indent', None)
+            kwargs.setdefault('separators', (',', ':'))
 
-        return Response(
-            dumps(
-                data or {},
-                indent=indent,
-                separators=separators,
-                **kwargs
-            ),
-            mimetype=self.mimetype,
-            status=status or 200,
-            headers={
-                'Content-Type': self.mimetype,
-                **(headers or {})
-            }
+        return self.to_json(
+            data or {},
+            **kwargs
         )
+
+    @staticmethod
+    def to_me(data: dict, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return dumps(data, **kwargs)
+
+    @staticmethod
+    def to_json(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return JsonBuilder.to_me(data, **kwargs)
+
+    @staticmethod
+    def to_dict(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return loads(data, **kwargs)

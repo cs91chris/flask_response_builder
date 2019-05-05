@@ -1,31 +1,48 @@
-from flask import Response
+import xmltodict
+
+from dicttoxml import dicttoxml
 
 from . import Builder
-from . import Transformer
 
 
 class XmlBuilder(Builder):
-    def build(self, data, headers=None, status=None, **kwargs):
+    def _build(self, data, **kwargs):
         """
 
         :param data:
-        :param headers:
-        :param status:
         :return:
         """
-        root = kwargs.get('root')
-
-        return Response(
-            Transformer.dict_to_xml(
-                data or {},
-                custom_root=root or self._conf.get('RB_XML_ROOT'),
-                cdata=self._conf.get('RB_XML_CDATA'),
-                **kwargs
-            ),
-            mimetype=self.mimetype,
-            status=status or 200,
-            headers={
-                'Content-Type': self.mimetype,
-                **(headers or {})
-            }
+        return self.to_xml(
+            data or {},
+            custom_root=kwargs.pop('root', self.conf.get('RB_XML_ROOT')),
+            cdata=self.conf.get('RB_XML_CDATA'),
+            **kwargs
         )
+
+    @staticmethod
+    def to_me(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        kwargs.setdefault('item_func', lambda x: 'ROW')
+        return dicttoxml(data, **kwargs)
+
+    @staticmethod
+    def to_xml(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return XmlBuilder.to_me(data, **kwargs)
+
+    @staticmethod
+    def to_dict(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return xmltodict.parse(data, **kwargs)

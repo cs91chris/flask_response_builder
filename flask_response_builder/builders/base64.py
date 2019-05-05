@@ -1,30 +1,60 @@
-from flask import Response
+import base64
 
 from . import Builder
-from . import Transformer
 
 
 class Base64Builder(Builder):
-    def build(self, data, headers=None, status=None, **kwargs):
+    def _build(self, data, **kwargs):
         """
 
         :param data:
-        :param headers:
-        :param status:
         :return:
         """
-        encoding = kwargs.pop('enc') or self._conf.get('RB_DEFAULT_ENCODE')
+        kwargs.setdefault('enc', self.conf.get('RB_DEFAULT_ENCODE'))
 
-        return Response(
-            Transformer.to_base64(
-                str(data or ''),
-                encoding,
-                **kwargs
-            ),
-            mimetype="{};{}".format(self.mimetype, encoding),
-            status=status or 200,
-            headers={
-                'Content-Type': self.mimetype,
-                **(headers or {})
-            }
+        return Base64Builder.to_base64(
+            str(data or ''),
+            **kwargs
         )
+
+    @staticmethod
+    def to_dict(data, **kwargs):
+        """
+
+        :param data:
+        :param kwargs:
+        :return:
+        """
+        return None
+
+    @staticmethod
+    def to_me(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        enc = kwargs.pop('enc', None)
+        dec = kwargs.pop('dec', True)
+
+        d = base64.b64encode(data.encode(enc), **kwargs)
+        return d.decode() if dec is True else d
+
+    @staticmethod
+    def from_base64(data: str, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return base64.b64decode(data, **kwargs)
+
+    @staticmethod
+    def to_base64(data, **kwargs):
+        """
+
+        :param data:
+        :param kwargs:
+        :return:
+        """
+        return Base64Builder.to_me(data, **kwargs)

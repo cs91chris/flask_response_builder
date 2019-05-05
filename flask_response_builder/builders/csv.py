@@ -1,46 +1,85 @@
-from flask import Response
+import io
+import csv
 
 from flask_response_builder.dictutils import to_flatten
 
 from . import Builder
-from . import Transformer
 
 
 class CsvBuilder(Builder):
-    def build(self, data, headers=None, status=None, **kwargs):
+    def _build(self, data, **kwargs):
         """
 
         :param data:
-        :param headers:
-        :param status:
         :return:
         """
-        filename = kwargs.get('filename')
-
         data = to_flatten(
             data or [],
-            to_dict=kwargs.get('to_dict'),
-            parent_key=self._conf.get('RB_FLATTEN_PREFIX'),
-            sep=self._conf.get('RB_FLATTEN_SEPARATOR')
+            to_dict=kwargs.pop('to_dict', None),
+            parent_key=self.conf.get('RB_FLATTEN_PREFIX', ''),
+            sep=self.conf.get('RB_FLATTEN_SEPARATOR', '')
         )
 
-        return Response(
-            Transformer.list_to_csv(
-                data or [],
-                delimiter=self._conf.get('RB_CSV_DELIMITER'),
-                quotechar=self._conf.get('RB_CSV_QUOTING_CHAR'),
-                dialect=self._conf.get('RB_CSV_DIALECT'),
-                **kwargs
-            ),
-            mimetype=self.mimetype,
-            status=status or 200,
-            headers={
-                'Content-Type': self.mimetype,
-                'Total-Rows': len(data),
-                'Total-Columns': len(data[0].keys()),
-                'Content-Disposition': 'attachment; filename=%s.csv' % (
-                    filename or self._conf.get('RB_CSV_DEFAULT_NAME'),
-                ),
-                **(headers or {})
-            }
+        self._headers.update({
+            'Total-Rows': len(data),
+            'Total-Columns': len(data[0].keys()),
+            'Content-Disposition': 'attachment; filename=%s.csv' % (
+                kwargs.pop('filename', self.conf.get('RB_CSV_DEFAULT_NAME')),
+            )
+        })
+
+        delimiter = self.conf.get('RB_CSV_DELIMITER')
+        if delimiter:
+            kwargs.update(dict(delimiter=delimiter))
+
+        quotechar = self.conf.get('RB_CSV_QUOTING_CHAR')
+        if quotechar:
+            kwargs.update(dict(quotechar=quotechar))
+
+        dialect = self.conf.get('RB_CSV_DIALECT')
+        if dialect:
+            kwargs.update(dict(dialect=dialect))
+
+        return self.to_csv(
+            data or [],
+            **kwargs
         )
+
+    @staticmethod
+    def to_me(data: list, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        kwargs.setdefault('dialect', 'excel-tab')
+        kwargs.setdefault('delimiter', ';')
+        kwargs.setdefault('quotechar', '"')
+        kwargs.setdefault('quoting', csv.QUOTE_ALL)
+
+        output = io.StringIO()
+        w = csv.DictWriter(output, data[0].keys() if data else '', **kwargs)
+        w.writeheader()
+        w.writerows(data)
+
+        return output.getvalue()
+
+    @staticmethod
+    def to_csv(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return CsvBuilder.to_me(data, **kwargs)
+
+    @staticmethod
+    def to_dict(data, **kwargs):
+        """
+
+        :param data:
+        :return:
+        """
+        return [
+            dict(row) for row in csv.DictReader(io.StringIO(data), **kwargs)
+        ]
