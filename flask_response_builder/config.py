@@ -1,16 +1,24 @@
-BUILDERS = {
-    'csv': 'text/csv',
-    'html': 'text/html',
-    'xml': 'application/xml',
-    'json': 'application/json',
-    'yaml': 'application/yaml',
-    'base64': 'application/base64',
+from .builders import CsvBuilder
+from .builders import HtmlBuilder
+from .builders import XmlBuilder
+from .builders import JsonBuilder
+from .builders import Base64Builder
+from .builders import YamlBuilder
+
+
+DEFAULT_BUILDERS = {
+    'csv': CsvBuilder('text/csv'),
+    'html': HtmlBuilder('text/html'),
+    'xml': XmlBuilder('application/xml'),
+    'json': JsonBuilder('application/json'),
+    'yaml': YamlBuilder('application/yaml'),
+    'base64': Base64Builder('application/base64'),
 }
 
 
 def set_default_config(app):
-    app.config.setdefault('RB_DEFAULT_ACCEPTABLE_MIMETYPES', [v for _, v in BUILDERS.items()])
-    app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', BUILDERS['json'])
+    app.config.setdefault('RB_DEFAULT_ACCEPTABLE_MIMETYPES', {v.mimetype for _, v in DEFAULT_BUILDERS.items()})
+    app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', DEFAULT_BUILDERS['json'].mimetype)
     app.config.setdefault('RB_DEFAULT_ENCODE', 'utf-8')
     app.config.setdefault('RB_DEFAULT_DUMP_INDENT', None)
     app.config.setdefault('RB_BASE64_ALTCHARS', None)
