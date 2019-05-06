@@ -92,7 +92,7 @@ def app():
     @_app.route('/nocontent/error')
     @rb.no_content
     def nocontent_error():
-        return data , 500, {'header': 'header'}
+        return data, 500, {'header': 'header'}
 
     @_app.route('/xhr')
     @rb.template_or_json('response.html')
@@ -124,7 +124,7 @@ def app():
     def test_decorator():
         resp = data['users'][0]
         resp.pop('sysdate')
-        return resp, 206, {'header': 'header'}
+        return resp, {'header': 'header'}, 206
 
     _app.response_class = Response
     _app.test_client_class = TestClient

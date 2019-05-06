@@ -44,27 +44,27 @@ Example usage
     app.config['RB_HTML_DEFAULT_TEMPLATE'] = 'response.html'
     rb = ResponseBuilder(app)
 
-    @_app.route('/nocontent')
-    @ResponseBuilder.no_content
+    @app.route('/nocontent')
+    @rb.no_content
     def nocontent():
         pass
 
-    @_app.route('/xhr')
+    @app.route('/xhr')
     @rb.template_or_json('response.html')
     def test_xhr():
         return data
 
-    @_app.route('/onaccept')
+    @app.route('/onaccept')
     @rb.on_accept(acceptable=['application/json', 'application/xml'])
     def test_accept():
         return data
 
-    @_app.route('/format')
+    @app.route('/format')
     @rb.on_format()
     def test_format():
         return data
 
-    @_app.route('/decorator')
+    @app.route('/decorator')
     @rb.response('json')
     def test_decorator():
         return data, 200, {'header': 'header'}
