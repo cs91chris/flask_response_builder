@@ -10,7 +10,7 @@ from flask import Response as Resp
 from flask.testing import FlaskClient
 from werkzeug.utils import cached_property
 
-from flask_response_builder import FlaskResponseBuilder
+from flask_response_builder import ResponseBuilder
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ def app():
 
     _app = Flask(__name__)
     _app.config['RB_HTML_DEFAULT_TEMPLATE'] = 'response.html'
-    rb = FlaskResponseBuilder(_app)
+    rb = ResponseBuilder(_app)
 
     data = {
         "users": [
@@ -85,7 +85,7 @@ def app():
             abort(400)
 
     @_app.route('/nocontent')
-    @FlaskResponseBuilder.no_content
+    @ResponseBuilder.no_content
     def nocontent():
         pass
 

@@ -10,7 +10,7 @@ from .config import set_default_config
 from .builders import Builder
 
 
-class FlaskResponseBuilder:
+class ResponseBuilder:
     def __init__(self, app=None, builders=None):
         """
 
