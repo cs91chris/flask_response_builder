@@ -112,7 +112,7 @@ def app():
     @_app.route('/customaccept')
     def test_customaccept():
         _, builder = rb.get_mimetype_accept()
-        return rb.build_response(builder, data['users'])
+        return rb.build_response(builder, (data['users'][0], 206, {'header': 'header'}))
 
     @_app.route('/format')
     @rb.on_format()
@@ -223,8 +223,9 @@ def test_on_accept_only(client):
 
 def test_custom_accept(client):
     res = client.get('/customaccept', headers={'Accept': 'application/xml'})
-    assert res.status_code == 200
+    assert res.status_code == 206
     assert 'application/xml' in res.headers['Content-Type']
+    assert res.headers['header'] == 'header'
 
 
 def test_template_or_json(client):

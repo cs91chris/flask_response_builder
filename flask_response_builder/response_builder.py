@@ -60,7 +60,7 @@ class ResponseBuilder:
             lambda d=None, b=name, **kv: self.build_response(b, d, **kv)
         )
 
-    def build_response(self, builder, data, **kwargs):
+    def build_response(self, builder=None, data=None, **kwargs):
         """
 
         :param builder:
@@ -70,16 +70,23 @@ class ResponseBuilder:
         if isinstance(builder, str):
             builder = self._builders.get(builder)
 
+        data, status, headers = self.normalize_response_data(data)
+
         if not builder:
-            raise NameError(
-                "Builder not found: using one of: '{}'".format(", ".join(self._builders.keys()))
-            )
+            m = headers.get('Content-Type') or self._app.config.get('RB_DEFAULT_RESPONSE_FORMAT')
+            for value in self._builders.values():
+                if value.mimetype == m:
+                    builder = value
+                    break
+            else:
+                raise NameError(
+                    "Builder not found: using one of: '{}'".format(", ".join(self._builders.keys()))
+                )
         elif not issubclass(builder.__class__, Builder):
             raise NameError(
                 "Invalid Builder: '{}'. You must extend class: '{}'".format(builder, Builder.__name__)
             )
 
-        data, status, headers = self.normalize_response_data(data)
         builder.build(data, **kwargs)
         return builder.response(status=status, headers=headers)
 
@@ -131,10 +138,7 @@ class ResponseBuilder:
                 resp.headers.pop('Content-Length', None)
                 return resp
 
-            m = headers.get('Content-Type') or self._app.config.get('RB_DEFAULT_RESPONSE_FORMAT')
-            for k, v in self._builders.items():
-                if v.mimetype == m:
-                    return self.build_response(k, resp)
+            return self.build_response(data=resp)
 
         return wrapped
 
