@@ -19,6 +19,7 @@ DEFAULT_BUILDERS = {
 def set_default_config(app):
     app.config.setdefault('RB_DEFAULT_ACCEPTABLE_MIMETYPES', {v.mimetype for _, v in DEFAULT_BUILDERS.items()})
     app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', DEFAULT_BUILDERS['json'].mimetype)
+    app.config.setdefault('RB_FORMAT_KEY', 'format')
     app.config.setdefault('RB_DEFAULT_ENCODE', 'utf-8')
     app.config.setdefault('RB_DEFAULT_DUMP_INDENT', None)
     app.config.setdefault('RB_BASE64_ALTCHARS', None)

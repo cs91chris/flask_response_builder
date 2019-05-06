@@ -70,19 +70,16 @@ class ResponseBuilder:
         if isinstance(builder, str):
             builder = self._builders.get(builder)
 
-        if builder is None:
-            raise NameError("Builder not found: using one of: '{}'".format(self._builders.keys()))
+        if not builder:
+            raise NameError(
+                "Builder not found: using one of: '{}'".format(", ".join(self._builders.keys()))
+            )
         elif not issubclass(builder.__class__, Builder):
             raise NameError(
                 "Invalid Builder: '{}'. You must extend class: '{}'".format(builder, Builder.__name__)
             )
 
-        if isinstance(data, tuple):
-            v = data + (None,) * (3 - len(data))
-            data, status, headers = v if isinstance(v[1], int) else (v[0], v[2], v[1])
-        else:
-            status = headers = None
-
+        data, status, headers = self.normalize_response_data(data)
         builder.build(data, **kwargs)
         return builder.response(status=status, headers=headers)
 
@@ -106,7 +103,18 @@ class ResponseBuilder:
         raise NotAcceptable('Not Acceptable: {}'.format(request.accept_mimetypes))
 
     @staticmethod
-    def no_content(func):
+    def normalize_response_data(data):
+        """
+
+        :param data:
+        :return:
+        """
+        if isinstance(data, tuple):
+            v = data + (None,) * (3 - len(data))
+            return v if isinstance(v[1], int) else (v[0], v[2], v[1])
+        return data, None, None
+
+    def no_content(self, func):
         """
 
         :param func:
@@ -114,11 +122,20 @@ class ResponseBuilder:
         """
         @wraps(func)
         def wrapped(*args, **kwargs):
-            func(*args, **kwargs)
-            resp = make_response('', 204)
-            del resp.headers['Content-Type']
-            del resp.headers['Content-Length']
-            return resp
+            resp = func(*args, **kwargs)
+            data, status, headers = ResponseBuilder.normalize_response_data(resp)
+
+            if status is None or status == 204:
+                resp = make_response('', 204, headers)
+                resp.headers.pop('Content-Type', None)
+                resp.headers.pop('Content-Length', None)
+                return resp
+
+            m = headers.get('Content-Type') or self._app.config.get('RB_DEFAULT_RESPONSE_FORMAT')
+            for k, v in self._builders.items():
+                if v.mimetype == m:
+                    return self.build_response(k, resp)
+
         return wrapped
 
     def on_format(self, default=None, acceptable=None):
@@ -131,9 +148,12 @@ class ResponseBuilder:
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
-                builder = request.args.get('format')
+                builder = request.args.get(self._app.config.get('RB_FORMAT_KEY')) or default
                 if builder not in (acceptable or self._builders.keys()):
-                    builder = default or 'json'
+                    for k, v in self._builders.items():
+                        if v.mimetype == self._app.config.get('RB_DEFAULT_RESPONSE_FORMAT'):
+                            builder = k
+                            break
 
                 return self.build_response(builder, fun(*args, **kwargs))
             return wrapper
@@ -156,6 +176,7 @@ class ResponseBuilder:
 
     def response(self, builder, **kwargs):
         """
+
         :param builder:
         :return:
         """
@@ -177,15 +198,18 @@ class ResponseBuilder:
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
+                varargs = {}
+                builder = self._builders.get('json')
+
                 if request.is_xhr:
-                    return self.build_response(
-                        self._builders.get('html'),
-                        fun(*args, **kwargs),
+                    builder = self._builders.get('html')
+                    varargs.update(dict(
                         template=template,
                         as_table=as_table,
                         to_dict=to_dict
-                    )
-                else:
-                    return self.build_response(self._builders.get('json'), fun(*args, **kwargs))
+                    ))
+
+                resp = fun(*args, **kwargs)
+                return self.build_response(builder, resp, **varargs)
             return wrapper
         return response

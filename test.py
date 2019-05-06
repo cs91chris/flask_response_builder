@@ -85,9 +85,14 @@ def app():
             abort(400)
 
     @_app.route('/nocontent')
-    @ResponseBuilder.no_content
+    @rb.no_content
     def nocontent():
         pass
+
+    @_app.route('/nocontent/error')
+    @rb.no_content
+    def nocontent_error():
+        return data , 500, {'header': 'header'}
 
     @_app.route('/xhr')
     @rb.template_or_json('response.html')
@@ -168,6 +173,12 @@ def test_no_content(client):
     res = client.get('/nocontent')
     assert res.status_code == 204
     assert res.headers.get('Content-Length') in (None, 0)
+
+
+def test_no_content_error(client):
+    res = client.get('/nocontent/error')
+    assert res.status_code == 500
+    assert res.headers.get('header') == 'header'
 
 
 def test_on_format(client):

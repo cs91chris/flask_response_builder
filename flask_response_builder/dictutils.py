@@ -1,32 +1,19 @@
-from decimal import Decimal
-from datetime import datetime
-
 from collections import MutableMapping
 
 
-def _flatten_dict(d, parent_key='', sep='_'):
+def rename_keys(data, trans=None, **kwargs):
     """
 
-    :param d:
-    :param parent_key:
-    :param sep:
-    :return:
+    :param data:
+    :param trans:
+    :param kwargs:
     """
-    items = []
-
-    for k, v in d.items():
-        key = (parent_key + sep + k) if parent_key else k
-
-        if isinstance(v, MutableMapping):
-            items.extend(_flatten_dict(v, key, sep=sep).items())
-        else:
-            if isinstance(v, Decimal):
-                v = float(v)
-            elif isinstance(v, datetime):
-                v = v.isoformat()
-
-            items.append((key, v))
-    return dict(items)
+    if trans is None:
+        for k, v in kwargs.items():
+            data[v] = data.pop(k)
+    else:
+        for k in list(data.keys()):
+            data[trans(k)] = data.pop(k)
 
 
 def to_flatten(data, to_dict=None, **kwargs):
@@ -36,6 +23,26 @@ def to_flatten(data, to_dict=None, **kwargs):
     :param to_dict:
     :return:
     """
+    def _flatten_dict(d, parent_key='', sep='_'):
+        """
+
+        :param d:
+        :param parent_key:
+        :param sep:
+        :return:
+        """
+        items = []
+
+        for k, v in d.items():
+            nk = (parent_key + sep + k) if parent_key else k
+
+            if isinstance(v, MutableMapping):
+                fdict = _flatten_dict(v, nk, sep=sep)
+                items.extend(fdict.items())
+            else:
+                items.append((nk, v))
+        return dict(items)
+
     response = []
     to_dict = to_dict or (lambda x: dict(x))
 

@@ -28,9 +28,10 @@ class HtmlBuilder(Builder):
                 to_dict=kwargs.pop('to_dict', None)
             )
 
+        kwargs.update(data=data)
+
         return render_template(
             kwargs.pop('template', self.conf.get('RB_HTML_DEFAULT_TEMPLATE')),
-            data=data or {},
             **kwargs
         )
 
