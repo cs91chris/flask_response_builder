@@ -16,6 +16,7 @@ Based on PyYAML, xmltodict, dicttoxml. See their documentation for other options
 - Response based on format parameter (query string)
 - template_or_json: response based on xhr request (deprecated: works only with old js library)
 - Support for case notation checker and converter, see ``Case`` utility class.
+- ``Transformer``: utility class for data notation conversion
 
 Quickstart
 ~~~~~~~~~~

@@ -5,6 +5,7 @@ Flask-ResponseBuilder
 Implementations of flask response in many formats like
 """
 from setuptools import setup
+from setuptools import find_packages
 
 from flask_response_builder import __version__
 from flask_response_builder import __author__
@@ -26,7 +27,7 @@ setup(
     author_email=email,
     description='Implementations of flask response in many formats',
     long_description=long_description,
-    packages=['flask_response_builder'],
+    packages=find_packages(),
     zip_safe=False,
     include_package_data=True,
     platforms='any',
