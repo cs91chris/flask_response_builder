@@ -21,6 +21,11 @@ class Builder(ABC):
         self._mimetype = mimetype
         self._response_class = response_class or Response
 
+        if not issubclass(self._response_class, Response):
+            raise TypeError(
+                "invalid '{}' class. You must extend flask Response class".format(str(self._response_class))
+            )
+
         self._data = None
         self._headers = {
             'Content-Type': self.mimetype
@@ -96,3 +101,15 @@ class Builder(ABC):
                 **(headers or {})
             }
         )
+
+    def transform(self, data, builder, inargs=None, outargs=None):
+        """
+
+        :param data:
+        :param builder:
+        :param inargs:
+        :param outargs:
+        :return:
+        """
+        _dict = builder.to_dict(data, **inargs)
+        return self.build(_dict, **outargs)
