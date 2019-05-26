@@ -1,32 +1,18 @@
+import uuid
 import pytest
 
+from enum import Enum
+from decimal import Decimal
 from datetime import datetime
 
-from flask import json
 from flask import Flask
 from flask import abort
-from flask import Response as Resp
-
-from flask.testing import FlaskClient
-from werkzeug.utils import cached_property
 
 from flask_response_builder import ResponseBuilder
 
 
 @pytest.fixture
 def app():
-    class Response(Resp):
-        @cached_property
-        def json(self):
-            return json.loads(self.data)
-
-    class TestClient(FlaskClient):
-        def open(self, *args, **kwargs):
-            if 'json' in kwargs:
-                kwargs['data'] = json.dumps(kwargs.pop('json'))
-                kwargs['Content-Type'] = 'application/json'
-            return super(TestClient, self).open(*args, **kwargs)
-
     _app = Flask(__name__)
     _app.config['RB_HTML_DEFAULT_TEMPLATE'] = 'response.html'
     rb = ResponseBuilder(_app)
@@ -122,12 +108,31 @@ def app():
     @_app.route('/decorator')
     @rb.response('json')
     def test_decorator():
-        resp = data['users'][0]
+        old = datetime.now()
+
+        class Color(Enum):
+            red = 'red'
+            green = 'green'
+            blue = 'blue'
+
+        resp = {
+            "id": uuid.uuid4(),
+            "name": "Leanne Graham",
+            "email": "Sincere@april.biz",
+            "sysdate": datetime.now(),
+            "time": datetime.now().time(),
+            "date": datetime.now().date(),
+            "delta": old - datetime.now(),
+            "color": Color.red,
+            "address": {
+                "city": "Gwenborough",
+                "zipcode": "92998-3874",
+                "geo": {"lat": Decimal(-37.3159), "lon": Decimal(81.1496)}
+            }
+        }
         resp.pop('sysdate')
         return resp, {'header': 'header'}, 206
 
-    _app.response_class = Response
-    _app.test_client_class = TestClient
     _app.testing = True
     return _app
 
