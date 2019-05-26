@@ -39,7 +39,7 @@ Then import it into your project:
 Example usage
 ^^^^^^^^^^^^^
 
-::
+.. code:: python
 
     app = Flask(__name__)
     app.config['RB_HTML_DEFAULT_TEMPLATE'] = 'response.html'
