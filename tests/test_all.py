@@ -7,8 +7,13 @@ from datetime import datetime
 
 from flask import Flask
 from flask import abort
+from flask import request
+from flask import Response
 
+from flask_response_builder import Case
+from flask_response_builder import Transformer
 from flask_response_builder import ResponseBuilder
+from flask_response_builder.dictutils import rename_keys
 
 
 @pytest.fixture
@@ -133,6 +138,40 @@ def app():
         resp.pop('sysdate')
         return resp, {'header': 'header'}, 206
 
+    @_app.route('/rename-key')
+    @rb.response('json')
+    def rename_key():
+        return rename_keys(
+            {
+                'pippo': 1,
+                'pluto': 2
+            },
+            trans=str.upper
+        )
+
+    @_app.route('/notation')
+    @rb.response('json')
+    def notation():
+        word = 'pippo pluto'
+        return [
+            word,
+            Case.to_camel(word),
+            Case.to_kebab(word),
+            Case.to_snake(word)
+        ]
+
+    @_app.route('/json2xml', methods=['POST'])
+    def json_to_xml():
+        return Response(Transformer.json_to_xml(request.data))
+
+    @_app.route('/json2csv', methods=['POST'])
+    def json_to_csv():
+        return Response(Transformer.json_to_csv(request.data))
+
+    @_app.route('/json2yaml', methods=['POST'])
+    def json_to_yaml():
+        return Response(Transformer.json_to_yaml(request.data))
+
     _app.testing = True
     return _app
 
@@ -248,3 +287,39 @@ def test_response_decorator(client):
     assert res.status_code == 206
     assert 'application/json' in res.headers['Content-Type']
     assert res.headers['header'] == 'header'
+
+
+def test_rename_key(client):
+    res = client.get('/rename-key')
+    assert res.status_code == 200
+    assert 'application/json' in res.headers['Content-Type']
+
+    data = res.get_json()
+    assert data['PIPPO'] == 1
+    assert data['PLUTO'] == 2
+
+
+def test_notation(client):
+    res = client.get('/notation')
+    assert res.status_code == 200
+
+    data = res.get_json()
+    assert Case.are_words(data[0])
+    assert Case.is_camel(data[1])
+    assert Case.is_kebab(data[2])
+    assert Case.is_snake(data[3])
+
+
+def test_transformer(client):
+    res = client.post('/json2xml', json={"pippo": 2, "pluto": 3})
+    assert res.status_code == 200
+    assert res.data == b'<?xml version="1.0" encoding="UTF-8" ?>' \
+                       b'<root><pippo type="int">2</pippo><pluto type="int">3</pluto></root>'
+
+    res = client.post('/json2csv', json=[{"pippo": 2, "pluto": 3}])
+    assert res.status_code == 200
+    assert res.data == b'"pippo";"pluto"\r\n"2";"3"\r\n'
+
+    res = client.post('/json2yaml', json={"pippo": 2, "pluto": 3})
+    assert res.status_code == 200
+    assert res.data == b'pippo: 2\npluto: 3\n'

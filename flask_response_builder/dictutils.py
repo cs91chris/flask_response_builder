@@ -15,6 +15,8 @@ def rename_keys(data, trans=None, **kwargs):
         for k in list(data.keys()):
             data[trans(k)] = data.pop(k)
 
+    return data
+
 
 def to_flatten(data, to_dict=None, **kwargs):
     """

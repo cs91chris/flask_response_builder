@@ -2,10 +2,10 @@ import re
 
 
 class Case:
-    _CHECK_CAMEL_REGEX = re.compile(r"^(?:[A-Z][a-z]*)+$")
+    _CHECK_CAMEL_REGEX = re.compile(r"^([a-zA-Z]).([0-9a-zA-Z])*$")
     _CHECK_SNAKE_REGEX = re.compile(r"((^|_+)[a-z0-9]*)*$")
     _CHECK_KEBAB_REGEX = re.compile(r"((^|-+)[a-z0-9]*)*$")
-    _CHECK_WORDS_REGEX = re.compile("[0-9a-zA-Z\u0020]", re.UNICODE)
+    _CHECK_WORDS_REGEX = re.compile(r"[0-9a-zA-Z\u0020]", re.UNICODE)
     _SUB_CAMEL_REGEX = re.compile(r"((?<=[a-z0-9])[A-Z]|(?!^)[A-Z](?=[a-z]))")
 
     @staticmethod
