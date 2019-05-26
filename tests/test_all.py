@@ -13,6 +13,8 @@ from flask import Response
 from flask_response_builder import Case
 from flask_response_builder import Transformer
 from flask_response_builder import ResponseBuilder
+from flask_response_builder.builders import JsonBuilder
+from flask_response_builder.builders import CsvBuilder
 from flask_response_builder.dictutils import rename_keys
 
 
@@ -172,6 +174,14 @@ def app():
     def json_to_yaml():
         return Response(Transformer.json_to_yaml(request.data))
 
+    @_app.route('/transform')
+    def test_transform():
+        b = JsonBuilder(mimetype='application/json')
+        return Response(b.transform(
+            '"pippo";"pluto"\r\n"2";"3"\r\n',
+            builder=CsvBuilder
+        ), headers={'Content-Type': b.mimetype})
+
     _app.testing = True
     return _app
 
@@ -244,7 +254,9 @@ def test_on_accept(client):
     assert res.status_code == 200
     assert 'application/json' in res.headers['Content-Type']
 
-    res = client.get('/onaccept', headers={'Accept': 'application/xml'})
+    res = client.get('/onaccept', headers={
+        'Accept': 'application/xml;encoding=utf-8;q=0.8, text/csv;q=0.4'
+    })
     assert res.status_code == 200
     assert 'application/xml' in res.headers['Content-Type']
 
@@ -323,3 +335,12 @@ def test_transformer(client):
     res = client.post('/json2yaml', json={"pippo": 2, "pluto": 3})
     assert res.status_code == 200
     assert res.data == b'pippo: 2\npluto: 3\n'
+
+
+def test_build_transform(client):
+    res = client.get('/transform')
+    assert res.status_code == 200
+
+    data = res.get_json()[0]
+    assert data['pippo'] == '2'
+    assert data['pluto'] == '3'

@@ -97,14 +97,25 @@ class ResponseBuilder:
         :param acceptable:
         :return:
         """
-        if not request.accept_mimetypes or str(request.accept_mimetypes) == '*/*':
-            accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
-        else:
-            mimetypes_list = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
-            accept = request.accept_mimetypes.best_match(mimetypes_list)
+        def find_builder(a):
+            for b in self._builders.values():
+                if a == b.mimetype:
+                    return b
 
-        for _, builder in self._builders.items():
-            if accept == builder.mimetype:
+        mimetypes = request.accept_mimetypes
+        acceptable = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
+
+        if not mimetypes or str(mimetypes) == '*/*':
+            accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
+            builder = find_builder(accept)
+            if builder:
+                return accept, builder
+
+        for m in mimetypes:
+            m = m[0].split(';')[0]  # in order to remove encoding param
+            accept = m if m in acceptable else None
+            builder = find_builder(accept)
+            if builder:
                 return accept, builder
 
         raise NotAcceptable('Not Acceptable: {}'.format(request.accept_mimetypes))
@@ -130,7 +141,7 @@ class ResponseBuilder:
         @wraps(func)
         def wrapped(*args, **kwargs):
             resp = func(*args, **kwargs)
-            data, status, headers = ResponseBuilder.normalize_response_data(resp)
+            data, status, headers = self.normalize_response_data(resp)
 
             if status is None or status == 204:
                 resp = make_response('', 204, headers)

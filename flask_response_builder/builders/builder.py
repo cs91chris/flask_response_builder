@@ -14,17 +14,14 @@ class Builder(ABC):
         if not isinstance(mimetype, str):
             raise TypeError('Invalid mimetype: {}'.format(mimetype))
 
-        if response_class and not isinstance(response_class, Response):
-            raise TypeError('Invalid response_class: {}'.format(response_class))
+        if response_class and not issubclass(response_class, Response):
+            raise TypeError(
+                'Invalid response_class: {}. You must extend flask Response class'.format(response_class)
+            )
 
         self.conf = kwargs
         self._mimetype = mimetype
         self._response_class = response_class or Response
-
-        if not issubclass(self._response_class, Response):
-            raise TypeError(
-                "invalid '{}' class. You must extend flask Response class".format(str(self._response_class))
-            )
 
         self._data = None
         self._headers = {
@@ -111,5 +108,5 @@ class Builder(ABC):
         :param outargs:
         :return:
         """
-        _dict = builder.to_dict(data, **inargs)
-        return self.build(_dict, **outargs)
+        _dict = builder.to_dict(data, **(inargs or {}))
+        return self.build(_dict, **(outargs or {}))

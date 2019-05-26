@@ -25,7 +25,10 @@ def to_flatten(data, to_dict=None, **kwargs):
     :param to_dict:
     :return:
     """
-    def _flatten_dict(d, parent_key='', sep='_'):
+    kwargs.setdefault('sep', '_')
+    kwargs.setdefault('parent_key', '')
+
+    def _flatten_dict(d, parent_key, sep):
         """
 
         :param d:
@@ -56,7 +59,9 @@ def to_flatten(data, to_dict=None, **kwargs):
         try:
             item = _flatten_dict(to_dict(item), **kwargs)
         except TypeError:
-            raise TypeError("Could not convert '{}' into dict object, please provide a to_dict function")
+            raise TypeError(
+                "Could not convert '{}' into dict object, please provide a to_dict function"
+            )
 
         for key in list(item.keys()):
             if isinstance(item.get(key), list):
@@ -64,11 +69,13 @@ def to_flatten(data, to_dict=None, **kwargs):
                     zipkeys.update({key: item.get(key)})
                     del item[key]
 
+        sep = kwargs.get('sep')
         for zk, value in zipkeys.items():
+            pk = "{}{}".format(zk, sep)
             for i in value:
                 response.append({
                     **item,
-                    **{"{}_{}".format(zk, k): v for k, v in i.items()}
+                    **{"{}{}".format(pk, k): v for k, v in i.items()}
                 })
 
         if len(zipkeys.keys()) == 0:
