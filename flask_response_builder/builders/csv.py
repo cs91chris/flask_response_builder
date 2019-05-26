@@ -80,6 +80,11 @@ class CsvBuilder(Builder):
         :param data:
         :return:
         """
+        kwargs.setdefault('dialect', 'excel-tab')
+        kwargs.setdefault('delimiter', ';')
+        kwargs.setdefault('quotechar', '"')
+        kwargs.setdefault('quoting', csv.QUOTE_ALL)
+
         return [
-            dict(row) for row in csv.DictReader(io.StringIO(data), **kwargs)
+            r for r in csv.DictReader(io.StringIO(data), **kwargs)
         ]
