@@ -2,7 +2,7 @@
 Flask-ResponseBuilder
 -------------
 
-Implementations of flask response in many formats like
+Implementations of flask response in many formats: base64, csv, json, xml, html, yaml
 """
 import sys
 import pytest
@@ -37,7 +37,7 @@ setup(
     license='MIT',
     author=author,
     author_email=email,
-    description='Implementations of flask response in many formats',
+    description='Implementations of flask response in many format notation',
     long_description=long_description,
     packages=find_packages(),
     zip_safe=False,

@@ -89,13 +89,16 @@ class Builder(ABC):
         :param headers:
         :return:
         """
+        headers = headers or {}
+        ct = headers.get('Content-Type')
+
         return self._response_class(
             self.data,
-            mimetype=self.mimetype,
+            mimetype=ct or self.mimetype,
             status=status or 200,
             headers={
                 **self._headers,
-                **(headers or {})
+                **headers
             }
         )
 

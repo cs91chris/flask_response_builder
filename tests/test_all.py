@@ -182,6 +182,11 @@ def app():
             builder=CsvBuilder
         ), headers={'Content-Type': b.mimetype})
 
+    @_app.route('/custom/mimetype')
+    @rb.response('json')
+    def custom_mimetype():
+        return data['users'], {'Content-Type': 'application/custom+json'}
+
     _app.testing = True
     return _app
 
@@ -344,3 +349,9 @@ def test_build_transform(client):
     data = res.get_json()[0]
     assert data['pippo'] == '2'
     assert data['pluto'] == '3'
+
+
+def test_custom_mimetype(client):
+    res = client.get('/custom/mimetype')
+    assert res.status_code == 200
+    assert 'application/custom+json' in res.headers['Content-Type']
