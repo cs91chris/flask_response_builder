@@ -7,7 +7,7 @@ from werkzeug.exceptions import NotAcceptable
 
 from .config import DEFAULT_BUILDERS
 from .config import set_default_config
-from .builders import Builder
+from .builders.builder import Builder
 
 
 class ResponseBuilder:

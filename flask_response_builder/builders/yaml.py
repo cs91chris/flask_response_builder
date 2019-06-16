@@ -1,7 +1,7 @@
 import io
 import yaml
 
-from . import Builder
+from .builder import Builder
 
 
 class YamlBuilder(Builder):

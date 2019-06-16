@@ -1,6 +1,6 @@
 import base64
 
-from . import Builder
+from .builder import Builder
 
 
 class Base64Builder(Builder):

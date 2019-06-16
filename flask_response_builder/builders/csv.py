@@ -3,7 +3,7 @@ import csv
 
 from flask_response_builder.dictutils import to_flatten
 
-from . import Builder
+from .builder import Builder
 
 
 class CsvBuilder(Builder):

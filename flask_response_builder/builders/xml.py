@@ -2,7 +2,7 @@ import xmltodict
 
 from dicttoxml import dicttoxml
 
-from . import Builder
+from .builder import Builder
 
 
 class XmlBuilder(Builder):

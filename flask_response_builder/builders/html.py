@@ -2,7 +2,7 @@ from flask import render_template
 
 from flask_response_builder.dictutils import to_flatten
 
-from . import Builder
+from .builder import Builder
 
 
 class HtmlBuilder(Builder):

@@ -1,5 +1,3 @@
-from .builder import Builder
-
 from .json import JsonBuilder
 from .xml import XmlBuilder
 from .csv import CsvBuilder
