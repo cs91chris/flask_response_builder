@@ -1,9 +1,8 @@
 from functools import wraps
 
+from flask import abort
 from flask import request
 from flask import make_response
-
-from werkzeug.exceptions import NotAcceptable
 
 from .config import DEFAULT_BUILDERS
 from .config import set_default_config
@@ -90,11 +89,12 @@ class ResponseBuilder:
         builder.build(data, **kwargs)
         return builder.response(status=status, headers=headers)
 
-    def get_mimetype_accept(self, default=None, acceptable=None):
+    def get_mimetype_accept(self, default=None, acceptable=None, strict=True):
         """
 
         :param default:
         :param acceptable:
+        :param strict:
         :return:
         """
         def find_builder(a):
@@ -103,13 +103,13 @@ class ResponseBuilder:
                     return b
 
         mimetypes = request.accept_mimetypes
+        default = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
         acceptable = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
 
         if not mimetypes or str(mimetypes) == '*/*':
-            accept = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
-            builder = find_builder(accept)
+            builder = find_builder(default)
             if builder:
-                return accept, builder
+                return default, builder
 
         for m in mimetypes:
             m = m[0].split(';')[0]  # in order to remove encoding param
@@ -118,7 +118,10 @@ class ResponseBuilder:
             if builder:
                 return accept, builder
 
-        raise NotAcceptable('Not Acceptable: {}'.format(request.accept_mimetypes))
+        if strict is True:
+            abort(406, "Not Acceptable: {}".format(request.accept_mimetypes))
+
+        return default, find_builder(default)
 
     @staticmethod
     def normalize_response_data(data):
@@ -174,17 +177,18 @@ class ResponseBuilder:
             return wrapper
         return response
 
-    def on_accept(self, default=None, acceptable=None):
+    def on_accept(self, default=None, acceptable=None, strict=True):
         """
 
         :param default:
         :param acceptable:
+        :param strict:
         :return:
         """
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
-                mimetype, builder = self.get_mimetype_accept(default, acceptable)
+                mimetype, builder = self.get_mimetype_accept(default, acceptable, strict)
                 return self.build_response(builder, fun(*args, **kwargs))
             return wrapper
         return response
