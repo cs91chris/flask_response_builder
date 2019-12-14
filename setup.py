@@ -12,11 +12,8 @@ from setuptools import find_packages
 from setuptools.command.test import test
 
 from flask_response_builder import __version__
-from flask_response_builder import __author__
+from flask_response_builder import __author_info__
 
-
-author, email = __author__.split()
-email = email.lstrip('<').rstrip('>')
 
 with open("README.rst") as rd:
     long_description = rd.read()
@@ -41,8 +38,8 @@ setup(
     version=__version__,
     url='https://github.com/cs91chris/flask_response_builder',
     license='MIT',
-    author=author,
-    author_email=email,
+    author=__author_info__['name'],
+    author_email=__author_info__['email'],
     description='Implementations of flask response in many format notation',
     long_description=long_description,
     packages=find_packages(),
