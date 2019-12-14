@@ -18,15 +18,21 @@ from flask_response_builder import __author__
 author, email = __author__.split()
 email = email.lstrip('<').rstrip('>')
 
-with open("README.rst", "r") as rd:
+with open("README.rst") as rd:
     long_description = rd.read()
 
 
 class PyTest(test):
     def finalize_options(self):
+        """
+
+        """
         test.finalize_options(self)
 
     def run_tests(self):
+        """
+
+        """
         sys.exit(pytest.main(['tests']))
 
 
@@ -48,10 +54,10 @@ setup(
         'pytest-cov==2.7.1'
     ],
     install_requires=[
-        'Flask==1.0.2',
-        'PyYAML==5.1',
-        'xmltodict==0.12.0',
-        'dicttoxml==1.7.4'
+        'Flask==1.1.*',
+        'PyYAML==5.*',
+        'xmltodict==0.12.*',
+        'dicttoxml==1.7.*'
     ],
     cmdclass={'test': PyTest},
     test_suite='tests',
