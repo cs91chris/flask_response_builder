@@ -220,7 +220,8 @@ class ResponseBuilder:
                 varargs = {}
                 builder = self._builders.get('json')
 
-                if request.is_xhr:
+                # check if request is XHR
+                if request.headers.get('X-Requested-With', '').lower() == "xmlhttprequest":
                     builder = self._builders.get('html')
                     varargs.update(dict(
                         template=template,
