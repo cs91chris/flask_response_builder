@@ -1,12 +1,9 @@
 from functools import wraps
 
-from flask import abort
-from flask import request
-from flask import make_response
+import flask
 
-from .config import DEFAULT_BUILDERS
-from .config import set_default_config
 from .builders.builder import Builder
+from .config import DEFAULT_BUILDERS, set_default_config
 
 
 class ResponseBuilder:
@@ -102,7 +99,7 @@ class ResponseBuilder:
                 if a == b.mimetype:
                     return b
 
-        mimetypes = request.accept_mimetypes
+        mimetypes = flask.request.accept_mimetypes
         default = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
         acceptable = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
 
@@ -119,7 +116,7 @@ class ResponseBuilder:
                 return accept, builder
 
         if strict is True:
-            abort(406, "Not Acceptable: {}".format(request.accept_mimetypes))
+            flask.abort(406, "Not Acceptable: {}".format(flask.request.accept_mimetypes))
 
         return default, find_builder(default)
 
@@ -147,7 +144,7 @@ class ResponseBuilder:
             data, status, headers = self.normalize_response_data(resp)
 
             if status is None or status == 204:
-                resp = make_response('', 204, headers)
+                resp = flask.make_response('', 204, headers)
                 resp.headers.pop('Content-Type', None)
                 resp.headers.pop('Content-Length', None)
                 return resp
@@ -166,7 +163,7 @@ class ResponseBuilder:
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
-                builder = request.args.get(self._app.config.get('RB_FORMAT_KEY')) or default
+                builder = flask.request.args.get(self._app.config.get('RB_FORMAT_KEY')) or default
                 if builder not in (acceptable or self._builders.keys()):
                     for k, v in self._builders.items():
                         if v.mimetype == self._app.config.get('RB_DEFAULT_RESPONSE_FORMAT'):
@@ -221,7 +218,7 @@ class ResponseBuilder:
                 builder = self._builders.get('json')
 
                 # check if request is XHR
-                if request.headers.get('X-Requested-With', '').lower() == "xmlhttprequest":
+                if flask.request.headers.get('X-Requested-With', '').lower() == "xmlhttprequest":
                     builder = self._builders.get('html')
                     varargs.update(dict(
                         template=template,

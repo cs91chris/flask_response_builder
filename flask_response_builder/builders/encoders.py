@@ -1,12 +1,7 @@
 import uuid
-
 from enum import Enum
 from decimal import Decimal
-
-from datetime import time
-from datetime import date
-from datetime import datetime
-from datetime import timedelta
+from datetime import time, date, datetime, timedelta
 
 from flask import json
 

@@ -1,26 +1,19 @@
 import uuid
-import pytest
-
 from enum import Enum
 from decimal import Decimal
 from datetime import datetime
 
-from flask import Flask
-from flask import abort
-from flask import request
-from flask import Response
+import flask
+import pytest
 
-from flask_response_builder import Case
-from flask_response_builder import Transformer
-from flask_response_builder import ResponseBuilder
-from flask_response_builder.builders import JsonBuilder
-from flask_response_builder.builders import CsvBuilder
 from flask_response_builder.dictutils import rename_keys
+from flask_response_builder.builders import JsonBuilder, CsvBuilder
+from flask_response_builder import Case, Transformer, ResponseBuilder
 
 
 @pytest.fixture
 def app():
-    _app = Flask(__name__)
+    _app = flask.Flask(__name__)
     _app.config['RB_HTML_DEFAULT_TEMPLATE'] = 'response.html'
     rb = ResponseBuilder(_app)
 
@@ -75,7 +68,7 @@ def app():
         if fmt == 'base64':
             return rb.base64(data)
         else:
-            abort(400)
+            flask.abort(400)
 
     @_app.route('/nocontent')
     @rb.no_content
@@ -164,20 +157,20 @@ def app():
 
     @_app.route('/json2xml', methods=['POST'])
     def json_to_xml():
-        return Response(Transformer.json_to_xml(request.data))
+        return flask.Response(Transformer.json_to_xml(flask.request.data))
 
     @_app.route('/json2csv', methods=['POST'])
     def json_to_csv():
-        return Response(Transformer.json_to_csv(request.data))
+        return flask.Response(Transformer.json_to_csv(flask.request.data))
 
     @_app.route('/json2yaml', methods=['POST'])
     def json_to_yaml():
-        return Response(Transformer.json_to_yaml(request.data))
+        return flask.Response(Transformer.json_to_yaml(flask.request.data))
 
     @_app.route('/transform')
     def test_transform():
         b = JsonBuilder(mimetype='application/json')
-        return Response(b.transform(
+        return flask.Response(b.transform(
             '"pippo";"pluto"\r\n"2";"3"\r\n',
             builder=CsvBuilder
         ), headers={'Content-Type': b.mimetype})
