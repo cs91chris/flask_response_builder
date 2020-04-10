@@ -5,15 +5,12 @@ Flask-ResponseBuilder
 Implementations of flask response in many formats: base64, csv, json, xml, html, yaml
 """
 import sys
+
 import pytest
-
-from setuptools import setup
-from setuptools import find_packages
 from setuptools.command.test import test
+from setuptools import setup, find_packages
 
-from flask_response_builder import __version__
-from flask_response_builder import __author_info__
-
+from flask_response_builder import __version__, __author_info__
 
 with open("README.rst") as rd:
     long_description = rd.read()
@@ -47,8 +44,8 @@ setup(
     include_package_data=True,
     platforms='any',
     tests_require=[
-        'pytest==4.5.0',
-        'pytest-cov==2.7.1'
+        'pytest==5.4.*',
+        'pytest-cov==2.8.*'
     ],
     install_requires=[
         'Flask==1.1.*',
