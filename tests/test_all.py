@@ -180,6 +180,14 @@ def app():
     def custom_mimetype():
         return data['users'], {'Content-Type': 'application/custom+json'}
 
+    @_app.route('/custom/jsonp')
+    @rb.response('json')
+    def custom_jsonp():
+        return {
+            'pippo': 1,
+            'pluto': 2
+        }
+
     _app.testing = True
     return _app
 
@@ -203,6 +211,10 @@ def test_app_returns_correct_content_type(client):
     res = client.get('/json')
     assert res.status_code == 200
     assert 'application/json' in res.headers['Content-Type']
+
+    res = client.get('/json?callback=pippo')
+    assert res.status_code == 200
+    assert 'application/javascript' in res.headers['Content-Type']
 
     res = client.get('/xml')
     assert res.status_code == 200
@@ -348,3 +360,11 @@ def test_custom_mimetype(client):
     res = client.get('/custom/mimetype')
     assert res.status_code == 200
     assert 'application/custom+json' in res.headers['Content-Type']
+
+
+def test_jsonp(client):
+    res = client.get('/custom/jsonp?callback=pippo')
+    assert res.status_code == 200
+    assert 'application/javascript' in res.headers['Content-Type']
+    data = res.data.decode()
+    assert data.startswith('pippo(') and data.endswith(');')
