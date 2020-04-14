@@ -95,6 +95,6 @@ Configuration
     15. ``RB_XML_ROOT``: *(default: 'ROOT')*
     16. ``RB_FLATTEN_PREFIX``: *(default: '')*
     17. ``RB_FLATTEN_SEPARATOR``: *(default: '_')*
-
+    18. ``RB_JSONP_PARAM``: *(default: 'callback')* if empty or None jsonp is disabled
 
 License MIT

@@ -1,8 +1,6 @@
 """
 Flask-ResponseBuilder
 -------------
-
-Implementations of flask response in many formats: base64, csv, json, xml, html, yaml
 """
 import sys
 
