@@ -1,4 +1,11 @@
-from .builders import CsvBuilder, HtmlBuilder, XmlBuilder, JsonBuilder, Base64Builder, YamlBuilder
+from .builders import (
+    CsvBuilder,
+    XmlBuilder,
+    YamlBuilder,
+    JsonBuilder,
+    HtmlBuilder,
+    Base64Builder,
+)
 
 DEFAULT_BUILDERS = {
     'csv': CsvBuilder('text/csv'),
@@ -32,3 +39,4 @@ def set_default_config(app):
     app.config.setdefault('RB_XML_ROOT', 'ROOT')
     app.config.setdefault('RB_FLATTEN_PREFIX', '')
     app.config.setdefault('RB_FLATTEN_SEPARATOR', '_')
+    app.config.setdefault('RB_JSONP_PARAM', 'callback')
