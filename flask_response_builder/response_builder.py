@@ -1,6 +1,7 @@
 from functools import wraps
 
 import flask
+from flask import current_app as cap
 
 from .builders.builder import Builder
 from .config import DEFAULT_BUILDERS, set_default_config
@@ -14,7 +15,7 @@ class ResponseBuilder:
         :param builders:
         """
         self._builders = {}
-        self._app = None
+
         if app is not None:
             self.init_app(app, builders)
 
@@ -24,7 +25,6 @@ class ResponseBuilder:
         :param app:
         :param builders:
         """
-        self._app = app
         set_default_config(app)
 
         if not hasattr(app, 'extensions'):
@@ -32,9 +32,9 @@ class ResponseBuilder:
         app.extensions['response_builder'] = self
 
         for name, builder in {**DEFAULT_BUILDERS, **(builders or {})}.items():
-            self.register_builder(name, builder)
+            self.register_builder(name, builder, **app.config)
 
-    def register_builder(self, name, builder):
+    def register_builder(self, name, builder, **kwargs):
         """
 
         :param name:
@@ -42,13 +42,14 @@ class ResponseBuilder:
         """
         if not issubclass(builder.__class__, Builder):
             raise NameError(
-                "Invalid Builder: '{}'. You must extend class: '{}'".format(builder, Builder.__name__)
+                "Invalid Builder: '{}'. "
+                "You must extend class: '{}'".format(builder, Builder.__name__)
             )
 
         if not builder.conf:
-            builder.conf = self._app.config
+            builder.conf = kwargs
         else:
-            builder.conf.update(self._app.config)
+            builder.conf.update(kwargs)
 
         self._builders.update({name: builder})
         setattr(
@@ -69,7 +70,7 @@ class ResponseBuilder:
         data, status, headers = self.normalize_response_data(data)
 
         if not builder:
-            m = headers.get('Content-Type') or self._app.config.get('RB_DEFAULT_RESPONSE_FORMAT')
+            m = headers.get('Content-Type') or cap.config.get('RB_DEFAULT_RESPONSE_FORMAT')
             for value in self._builders.values():
                 if value.mimetype == m:
                     builder = value
@@ -100,8 +101,8 @@ class ResponseBuilder:
                     return b
 
         mimetypes = flask.request.accept_mimetypes
-        default = default or self._app.config['RB_DEFAULT_RESPONSE_FORMAT']
-        acceptable = acceptable or self._app.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
+        default = default or cap.config['RB_DEFAULT_RESPONSE_FORMAT']
+        acceptable = acceptable or cap.config['RB_DEFAULT_ACCEPTABLE_MIMETYPES']
 
         if not mimetypes or str(mimetypes) == '*/*':
             builder = find_builder(default)
@@ -163,10 +164,10 @@ class ResponseBuilder:
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
-                builder = flask.request.args.get(self._app.config.get('RB_FORMAT_KEY')) or default
+                builder = flask.request.args.get(cap.config.get('RB_FORMAT_KEY')) or default
                 if builder not in (acceptable or self._builders.keys()):
                     for k, v in self._builders.items():
-                        if v.mimetype == self._app.config.get('RB_DEFAULT_RESPONSE_FORMAT'):
+                        if v.mimetype == cap.config.get('RB_DEFAULT_RESPONSE_FORMAT'):
                             builder = k
                             break
 
