@@ -53,22 +53,35 @@ def app():
         ]
     }
 
-    @_app.route('/<path:fmt>')
-    def index(fmt):
-        if fmt == 'json':
-            return rb.json(data)
-        if fmt == 'xml':
-            return rb.xml(data)
-        if fmt == 'yaml':
-            return rb.yaml(data)
-        if fmt == 'html':
-            return rb.html(data['users'], name='Users', as_table=True)
-        if fmt == 'csv':
-            return rb.csv(data['users'], filename='users')
-        if fmt == 'base64':
-            return rb.base64(data)
-        else:
-            flask.abort(400)
+    @_app.route('/json')
+    @rb.json()
+    def index_json():
+        return data
+
+    @_app.route('/xml')
+    @rb.xml()
+    def index_xml():
+        return data
+
+    @_app.route('/yaml')
+    @rb.yaml()
+    def index_yaml():
+        return data
+
+    @_app.route('/html')
+    def index_html():
+        builder = rb.html(name='Users', as_table=True)
+        return builder(data=data['users'])
+
+    @_app.route('/csv')
+    def index_csv():
+        builder = rb.csv(filename='users')
+        return builder(data=data['users'])
+
+    @_app.route('/base64')
+    @rb.base64()
+    def index_base64():
+        return data
 
     @_app.route('/nocontent')
     @rb.no_content

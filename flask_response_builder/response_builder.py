@@ -52,10 +52,19 @@ class ResponseBuilder:
             builder.conf.update(kwargs)
 
         self._builders.update({name: builder})
-        setattr(
-            self, name,
-            lambda d=None, b=name, **kv: self.build_response(b, d, **kv)
-        )
+
+        def _builder_attr(**kwargs):
+            def _wrapper(func=None, data=None):
+                if func is not None:
+                    @wraps(func)
+                    def wrapped():
+                        return self.build_response(name, func(), **kwargs)
+                    return wrapped
+
+                return self.build_response(name, data, **kwargs)
+            return _wrapper
+
+        setattr(self, name, _builder_attr)
 
     def build_response(self, builder=None, data=None, **kwargs):
         """
