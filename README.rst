@@ -65,13 +65,21 @@ Example usage
     def test_format():
         return data
 
-    @app.route('/decorator')
-    @rb.response('json')
-    def test_decorator():
-        return data, 200, {'header': 'header'}
 
+For every registered builder you can explicitly use them in two ways:
 
-For advanced example usage see ``test.py`` file.
+.. code:: python
+
+	@app.route('/decorator')
+	    @rb.response('json')
+	    def test_decorator():
+	        return data, 200, {'header': 'header'}
+
+	@_app.route('/csv')
+	def index_csv():
+	    builder = rb.csv(filename='file.csv')
+	    return builder((data, 200))
+
 
 .. _section-2:
 
