@@ -1,8 +1,8 @@
-import io
 import csv
+import io
 
-from .builder import Builder
 from flask_response_builder.dictutils import to_flatten
+from .builder import Builder
 
 
 class CsvBuilder(Builder):

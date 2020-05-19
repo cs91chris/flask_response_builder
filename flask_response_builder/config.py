@@ -1,11 +1,4 @@
-from .builders import (
-    CsvBuilder,
-    XmlBuilder,
-    YamlBuilder,
-    JsonBuilder,
-    HtmlBuilder,
-    Base64Builder,
-)
+from .builders import (Base64Builder, CsvBuilder, HtmlBuilder, JsonBuilder, XmlBuilder, YamlBuilder)
 
 DEFAULT_BUILDERS = {
     'csv': CsvBuilder('text/csv'),
@@ -22,7 +15,9 @@ def set_default_config(app):
 
     :param app:
     """
-    app.config.setdefault('RB_DEFAULT_ACCEPTABLE_MIMETYPES', {v.mimetype for _, v in DEFAULT_BUILDERS.items()})
+    app.config.setdefault('RB_DEFAULT_ACCEPTABLE_MIMETYPES', {
+        v.mimetype for _, v in DEFAULT_BUILDERS.items()
+    })
     app.config.setdefault('RB_DEFAULT_RESPONSE_FORMAT', DEFAULT_BUILDERS['json'].mimetype)
     app.config.setdefault('RB_FORMAT_KEY', 'format')
     app.config.setdefault('RB_DEFAULT_ENCODE', 'utf-8')
