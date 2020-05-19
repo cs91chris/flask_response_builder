@@ -45,7 +45,7 @@ class ResponseBuilder:
                 "Invalid Builder: '{}'. You must extend class: '{}'".format(builder, Builder.__name__)
             )
 
-        if builder.conf is None:
+        if not builder.conf:
             builder.conf = self._app.config
         else:
             builder.conf.update(self._app.config)

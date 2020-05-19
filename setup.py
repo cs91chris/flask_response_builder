@@ -83,7 +83,8 @@ setup(
         'Flask >= 1.0.4',
         'PyYAML >= 5',
         'xmltodict >= 0',
-        'dicttoxml >= 1'
+        'dicttoxml >= 1',
+        'json2html >= 1'
     ],
     cmdclass={'test': PyTest},
     test_suite='tests',

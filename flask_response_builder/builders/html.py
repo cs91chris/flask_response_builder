@@ -1,7 +1,9 @@
-from flask import render_template
+import flask
+import json2html
+from jinja2.exceptions import TemplatesNotFound
 
-from .builder import Builder
 from flask_response_builder.dictutils import to_flatten
+from .builder import Builder
 
 
 class HtmlBuilder(Builder):
@@ -29,10 +31,12 @@ class HtmlBuilder(Builder):
 
         kwargs.update(data=data)
 
-        return render_template(
-            kwargs.pop('template', self.conf.get('RB_HTML_DEFAULT_TEMPLATE')),
-            **kwargs
-        )
+        try:
+            template = kwargs.pop('template', self.conf.get('RB_HTML_DEFAULT_TEMPLATE'))
+            return flask.render_template(template, **kwargs)
+        except TemplatesNotFound:
+            response = json2html.Json2Html().convert(data)
+            return flask.render_template_string(response)
 
     @staticmethod
     def to_me(data, **kwargs):

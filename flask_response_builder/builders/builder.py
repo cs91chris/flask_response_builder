@@ -15,7 +15,8 @@ class Builder(ABC):
 
         if response_class and not issubclass(response_class, Response):
             raise TypeError(
-                'Invalid response_class: {}. You must extend flask Response class'.format(response_class)
+                'Invalid response_class: {}. '
+                'You must extend flask Response class'.format(response_class)
             )
 
         self.conf = kwargs
