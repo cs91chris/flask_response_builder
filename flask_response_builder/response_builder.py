@@ -53,18 +53,39 @@ class ResponseBuilder:
 
         self._builders.update({name: builder})
 
-        def _builder_attr(**kwargs):
+        def _builder_attr(**params):
             def _wrapper(func=None, data=None):
+                """
+                func and data are mutual exclusive:
+                    if func is present means a decorator builder used
+                    if data is provided means decorator used as attribute
+
+                :param func:
+                :param data:
+                :return:
+                """
                 if func is not None:
                     @wraps(func)
                     def wrapped():
-                        return self.build_response(name, func(), **kwargs)
+                        return self.build_response(name, func(), **params)
                     return wrapped
 
-                return self.build_response(name, data, **kwargs)
+                return self.build_response(name, data, **params)
             return _wrapper
 
         setattr(self, name, _builder_attr)
+
+    @staticmethod
+    def _empty_response(status, headers):
+        """
+
+        :param status:
+        :param headers:
+        :return:
+        """
+        resp = flask.make_response(b'', status, headers)
+        resp.headers.pop('Content-Type', None)
+        return resp
 
     def build_response(self, builder=None, data=None, **kwargs):
         """
@@ -77,6 +98,9 @@ class ResponseBuilder:
             builder = self._builders.get(builder)
 
         data, status, headers = self.normalize_response_data(data)
+
+        if not data:
+            return self._empty_response(status, headers)
 
         if not builder:
             m = headers.get('Content-Type') or cap.config.get('RB_DEFAULT_RESPONSE_FORMAT')
@@ -153,14 +177,13 @@ class ResponseBuilder:
             resp = func(*args, **kwargs)
             data, status, headers = self.normalize_response_data(resp)
 
-            if status is None or status == 204:
-                resp = flask.make_response('', 204, headers)
-                resp.headers.pop('Content-Type', None)
-                resp.headers.pop('Content-Length', None)
-                return resp
+            if data:
+                resp = self.build_response(data=resp)
+            else:
+                status = 204 if status in (None, 204) else status
+                resp = self._empty_response(status, headers)
 
-            return self.build_response(data=resp)
-
+            return resp
         return wrapped
 
     def on_format(self, default=None, acceptable=None):
