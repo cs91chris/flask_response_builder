@@ -1,6 +1,8 @@
 Flask-ResponseBuilder
 =====================
 
+|download| |version|
+
 Implementations of flask response in many formats: base64, csv, json, xml, html, yaml.
 You can create your own builder extending ``Builder`` class and registering it with ``register_builder`` method.
 
@@ -110,3 +112,6 @@ Configuration
     18. ``RB_JSONP_PARAM``: *(default: 'callback')* if empty or None jsonp is disabled
 
 License MIT
+
+.. |download| image:: https://pypip.in/download/flask_responsebuilder/badge.png
+.. |version| image:: https://pypip.in/version/flask_responsebuilder/badge.png
