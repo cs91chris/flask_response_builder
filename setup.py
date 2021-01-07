@@ -1,13 +1,13 @@
 """
 Flask-ResponseBuilder
--------------
+---------------------
 """
 import os
 import re
 import sys
 
+from setuptools import find_packages, setup
 from setuptools.command.test import test
-from setuptools import setup, find_packages
 
 BASE_PATH = os.path.dirname(__file__)
 VERSION_FILE = os.path.join('flask_response_builder', 'version.py')
@@ -83,7 +83,6 @@ setup(
         'Flask >= 1.0.4',
         'PyYAML >= 5',
         'xmltodict >= 0',
-        'dicttoxml >= 1',
         'json2html >= 1'
     ],
     cmdclass={'test': PyTest},

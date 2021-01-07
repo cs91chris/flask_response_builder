@@ -1,4 +1,4 @@
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
 
 def rename_keys(data, trans=None, **kwargs):

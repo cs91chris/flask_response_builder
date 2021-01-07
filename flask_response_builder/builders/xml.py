@@ -1,7 +1,13 @@
 import xmltodict
-from dicttoxml import dicttoxml
 
 from .builder import Builder
+
+try:
+    from dicttoxml import dicttoxml
+except ImportError:
+    from .dicttoxml import DictToXML
+
+    dicttoxml = DictToXML().dicttoxml
 
 
 class XmlBuilder(Builder):

@@ -52,7 +52,6 @@ class Builder(ABC):
         :param data:
         :param kwargs:
         """
-        pass
 
     @staticmethod
     @abstractmethod
@@ -62,7 +61,6 @@ class Builder(ABC):
         :param data:
         :param kwargs:
         """
-        pass
 
     @abstractmethod
     def _build(self, data, **kwargs):
@@ -70,7 +68,6 @@ class Builder(ABC):
 
         :param data:
         """
-        pass
 
     def build(self, data, **kwargs):
         """
