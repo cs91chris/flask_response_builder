@@ -18,6 +18,10 @@ Based on PyYAML, xmltodict, dicttoxml. See their documentation for other options
 - Support for case notation checker and converter, see ``Case`` utility class.
 - ``Transformer``: utility class for data notation conversion
 
+**NOTE**: From 2.1.11 the ``dicttoxml`` package seems to be abandoned, so a copy of module ``dicttoxml``
+is ported in this package to fix deprecation warning, but if ``dicttoxml`` is installed it has priority.
+In future will be removed and the internal module will be improved.
+
 Quickstart
 ~~~~~~~~~~
 
@@ -70,15 +74,15 @@ For every registered builder you can explicitly use them in two ways:
 
 .. code:: python
 
-	@app.route('/decorator')
-	    @rb.response('json')
-	    def test_decorator():
-	        return data, 200, {'header': 'header'}
+    @app.route('/decorator')
+    @rb.response('json')
+    def test_decorator():
+        return data, 200, {'header': 'header'}
 
-	@_app.route('/csv')
-	def index_csv():
-	    builder = rb.csv(filename='file.csv')
-	    return builder((data, 200))
+    @_app.route('/csv')
+    def index_csv():
+        builder = rb.csv(filename='file.csv')
+        return builder((data, 200))
 
 
 .. _section-2:
