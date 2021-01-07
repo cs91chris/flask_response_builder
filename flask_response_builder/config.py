@@ -1,11 +1,13 @@
-from .builders import (Base64Builder, CsvBuilder, HtmlBuilder, JsonBuilder, XmlBuilder, YamlBuilder)
+from .builders import (
+    Base64Builder, CsvBuilder, HtmlBuilder, JsonBuilder, XmlBuilder, YamlBuilder
+)
 
 DEFAULT_BUILDERS = {
-    'csv': CsvBuilder('text/csv'),
-    'html': HtmlBuilder('text/html'),
-    'xml': XmlBuilder('application/xml'),
-    'json': JsonBuilder('application/json'),
-    'yaml': YamlBuilder('application/yaml'),
+    'csv':    CsvBuilder('text/csv'),
+    'html':   HtmlBuilder('text/html'),
+    'xml':    XmlBuilder('application/xml'),
+    'json':   JsonBuilder('application/json'),
+    'yaml':   YamlBuilder('application/yaml'),
     'base64': Base64Builder('application/base64'),
 }
 

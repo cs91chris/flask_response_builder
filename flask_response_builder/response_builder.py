@@ -68,9 +68,11 @@ class ResponseBuilder:
                     @wraps(func)
                     def wrapped():
                         return self.build_response(name, func(), **params)
+
                     return wrapped
 
                 return self.build_response(name, data, **params)
+
             return _wrapper
 
         setattr(self, name, _builder_attr)
@@ -128,6 +130,7 @@ class ResponseBuilder:
         :param strict:
         :return:
         """
+
         def find_builder(a):
             for b in self._builders.values():
                 if a == b.mimetype:
@@ -172,6 +175,7 @@ class ResponseBuilder:
         :param func:
         :return:
         """
+
         @wraps(func)
         def wrapped(*args, **kwargs):
             resp = func(*args, **kwargs)
@@ -184,6 +188,7 @@ class ResponseBuilder:
                 resp = self._empty_response(status, headers)
 
             return resp
+
         return wrapped
 
     def on_format(self, default=None, acceptable=None):
@@ -193,6 +198,7 @@ class ResponseBuilder:
         :param acceptable:
         :return:
         """
+
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
@@ -204,7 +210,9 @@ class ResponseBuilder:
                             break
 
                 return self.build_response(builder, fun(*args, **kwargs))
+
             return wrapper
+
         return response
 
     def on_accept(self, default=None, acceptable=None, strict=True):
@@ -215,12 +223,15 @@ class ResponseBuilder:
         :param strict:
         :return:
         """
+
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
                 mimetype, builder = self.get_mimetype_accept(default, acceptable, strict)
                 return self.build_response(builder, fun(*args, **kwargs))
+
             return wrapper
+
         return response
 
     def response(self, builder, **kwargs):
@@ -229,11 +240,14 @@ class ResponseBuilder:
         :param builder:
         :return:
         """
+
         def _response(f):
             @wraps(f)
             def wrapper(*args, **kw):
                 return self.build_response(builder, f(*args, **kw), **kwargs)
+
             return wrapper
+
         return _response
 
     def template_or_json(self, template: str, as_table=False, to_dict=None):
@@ -244,6 +258,7 @@ class ResponseBuilder:
         :param to_dict:
         :return:
         """
+
         def response(fun):
             @wraps(fun)
             def wrapper(*args, **kwargs):
@@ -261,5 +276,7 @@ class ResponseBuilder:
 
                 resp = fun(*args, **kwargs)
                 return self.build_response(builder, resp, **varargs)
+
             return wrapper
+
         return response

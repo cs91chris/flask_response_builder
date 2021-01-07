@@ -20,8 +20,8 @@ class CsvBuilder(Builder):
         )
 
         self._headers.update({
-            'Total-Rows': len(data),
-            'Total-Columns': len(data[0].keys()),
+            'Total-Rows':          len(data),
+            'Total-Columns':       len(data[0].keys()),
             'Content-Disposition': 'attachment; filename=%s.csv' % (
                 kwargs.pop('filename', self.conf.get('RB_CSV_DEFAULT_NAME')),
             )
