@@ -166,8 +166,11 @@ class ResponseBuilder:
         """
         if isinstance(data, tuple):
             v = data + (None,) * (3 - len(data))
-            return v if isinstance(v[1], int) else (v[0], v[2], v[1])
-        return data, None, None
+            if isinstance(v[1], int):
+                return v[0], v[1], v[2] or {}
+            else:
+                return v[0], v[2], v[1] or {}
+        return data, None, {}
 
     def no_content(self, func):
         """
