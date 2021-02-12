@@ -36,10 +36,7 @@ class JsonBuilder(Builder):
             kwargs.setdefault('separators', (',', ':'))
 
         kwargs.setdefault('cls', self._encoder)
-        resp = self.to_json(
-            data or {},
-            **kwargs
-        )
+        resp = self.to_json(data, **kwargs)
 
         param = self.conf.get('RB_JSONP_PARAM')
         if param:

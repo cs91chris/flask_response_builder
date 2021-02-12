@@ -101,7 +101,7 @@ class ResponseBuilder:
 
         data, status, headers = self.normalize_response_data(data)
 
-        if not data:
+        if data is None:
             return self._empty_response(status, headers)
 
         if not builder:
