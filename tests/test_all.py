@@ -106,6 +106,12 @@ def app():
     @_app.route('/onaccept')
     @rb.on_accept()
     def test_accept():
+        item = flask.request.args.get('item')
+        if item is not None:
+            try:
+                return data['users'][int(item)]
+            except IndexError:
+                return []
         return data['users']
 
     @_app.route('/onacceptonly')
@@ -287,6 +293,10 @@ def test_on_accept(client):
     res = client.get('/onaccept', headers={'Accept': '*/*'})
     assert res.status_code == 200
     assert 'application/json' in res.headers['Content-Type']
+
+    res = client.get('/onaccept?item=11111', headers={'Accept': '*/*'})
+    assert res.status_code == 200
+    assert len(res.get_json()) == 0
 
     res = client.get('/onaccept', headers={
         'Accept': 'application/xml;encoding=utf-8;q=0.8, text/csv;q=0.4'
