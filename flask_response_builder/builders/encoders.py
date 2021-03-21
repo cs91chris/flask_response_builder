@@ -101,7 +101,7 @@ class CollectionsEncoderMixin(json.JSONEncoder):
 
 class ExtraEncoderMixin(json.JSONEncoder):
     """
-    Encoders for: UUID, ObjectId
+    Encoders for: UUID, ObjectId and object with methods: to_dict, asdict
     """
 
     def default(self, o, *args, **kwargs):
@@ -109,6 +109,10 @@ class ExtraEncoderMixin(json.JSONEncoder):
             return o.hex
         if isinstance(o, object_id):
             return str(o)
+        if hasattr(o, 'to_dict'):
+            return o.to_dict()
+        if hasattr(o, 'asdict'):
+            return o.asdict()
 
         return super().default(o)
 
