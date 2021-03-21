@@ -168,8 +168,9 @@ class ResponseBuilder:
             v = data + (None,) * (3 - len(data))
             if isinstance(v[1], int):
                 return v[0], v[1], v[2] or {}
-            else:
-                return v[0], v[2], v[1] or {}
+            return v[0], v[2], v[1] or {}
+        if isinstance(data, int):
+            return None, data, {}
         return data, None, {}
 
     def no_content(self, func):
