@@ -60,7 +60,9 @@ def to_flatten(data, to_dict=None, **kwargs):
             item = _flatten_dict(to_dict(item), **kwargs)
         except TypeError:
             raise TypeError(
-                "Could not convert '{}' into dict object, please provide a to_dict function"
+                "Could not convert '%s' into dict object, "
+                "please provide a to_dict function",
+                item
             )
 
         for key in list(item.keys()):

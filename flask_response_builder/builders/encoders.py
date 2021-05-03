@@ -87,14 +87,16 @@ class CollectionsEncoderMixin(json.JSONEncoder):
     """
 
     def default(self, o, *args, **kwargs):
-        # check for namedtuple compliant
-        if hasattr(o, '_asdict'):
-            # noinspection PyProtectedMember
-            return o._asdict()
         if isinstance(o, deque):
             return list(o)
         if isinstance(o, (defaultdict, OrderedDict, Counter)):
             return dict(o)
+        try:
+            # check for namedtuple compliant
+            # noinspection PyProtectedMember
+            return o._asdict()
+        except (AttributeError, TypeError):
+            pass
 
         return super().default(o)
 
@@ -109,10 +111,14 @@ class ExtraEncoderMixin(json.JSONEncoder):
             return o.hex
         if isinstance(o, object_id):
             return str(o)
-        if hasattr(o, 'to_dict'):
-            return o.to_dict()
-        if hasattr(o, 'asdict'):
+        try:
             return o.asdict()
+        except (AttributeError, TypeError):
+            pass
+        try:
+            return o.to_dict()
+        except (AttributeError, TypeError):
+            pass
 
         return super().default(o)
 

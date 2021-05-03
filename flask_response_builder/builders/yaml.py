@@ -16,10 +16,7 @@ class YamlBuilder(Builder):
             kwargs.setdefault('indent', self.conf.get('RB_DEFAULT_DUMP_INDENT'))
         kwargs.setdefault('allow_unicode', self.conf.get('RB_YAML_ALLOW_UNICODE'))
 
-        return YamlBuilder.to_yaml(
-            data or {},
-            **kwargs
-        )
+        return YamlBuilder.to_yaml(data or {}, **kwargs)
 
     @staticmethod
     def to_me(data: dict, **kwargs):

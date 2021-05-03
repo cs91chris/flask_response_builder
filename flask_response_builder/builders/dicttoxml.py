@@ -34,13 +34,14 @@ class DictToXML:
 
     @staticmethod
     def escape_xml(s):
-        if type(s) is str:
-            s = s.replace('&', '&amp;') \
+        try:
+            return s.replace('&', '&amp;') \
                 .replace('"', '&quot;') \
                 .replace("'", '&apos;') \
                 .replace('<', '&lt;') \
                 .replace('>', '&gt;')
-        return s
+        except AttributeError:
+            return s
 
     @staticmethod
     def _make_attr_string(attr):
@@ -50,11 +51,12 @@ class DictToXML:
 
     def key_is_valid_xml(self, key):
         """Checks that a key is a valid XML name"""
+        # noinspection PyBroadException
         try:
             parseString('%s<%s>foo</%s>' % (self._declaration, key, key))
-            return True
-        except:  # minidom does not implement exceptions well
+        except Exception:  # minidom does not implement exceptions well
             return False
+        return True
 
     def make_valid_xml_name(self, key, attr):
         """Tests an XML name and fixes it if invalid"""
@@ -203,7 +205,7 @@ class DictToXML:
         return '<%s%s></%s>' % (key, self._make_attr_string(attr), key)
 
     def dicttoxml(self, obj, root=True, custom_root='root', ids=False, attr_type=True,
-                  item_func=lambda p: 'item', cdata=False):
+                  item_func=lambda p: 'item', cdata=False, encoding='utf-8'):
         """Converts a python object into XML.
         Arguments:
             - root specifies whether the output is wrapped in an XML root element
@@ -230,4 +232,4 @@ class DictToXML:
             ))
         else:
             output.append(self.convert(obj, ids, attr_type, item_func, cdata, parent=''))
-        return ''.join(output).encode('utf-8')
+        return ''.join(output).encode(encoding)
