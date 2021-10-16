@@ -171,6 +171,8 @@ class ResponseBuilder:
             return v[0], v[2], v[1] or {}
         if isinstance(data, int):
             return None, data, {}
+        if isinstance(data, flask.Response):
+            return data.response, data.status_code, data.headers
         return data, None, {}
 
     def no_content(self, func):
